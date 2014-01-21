@@ -1,0 +1,4 @@
+# Ignore list
+*.py[cod]
+.qs_env
+*.sublime-project
