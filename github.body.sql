@@ -22,11 +22,53 @@ as
 
 	end get_account_passwd;
 
+	function encode64_clob(
+		content 				in 			clob
+	) 
+	return clob 
+
+	is
+		--the chunk size must be a multiple of 48
+		chunksize 				integer := 576;
+		place 					integer := 1;
+		file_size 				integer;
+		temp_chunk 				varchar(4000);
+		out_clob 				clob;
+	begin
+		file_size := length(content);
+		
+		while (place <= file_size) loop
+		       temp_chunk := substr(content, place, chunksize);
+		       out_clob := out_clob  || utl_raw.cast_to_varchar2(utl_encode.base64_encode(utl_raw.cast_to_raw(temp_chunk)));
+		       place := place + chunksize;
+		end loop;
+
+		return out_clob;
+	end encode64_clob;
+
+	function github_committer_hash
+	return json.jsonstructobj
+
+	as
+
+		committer 					json.jsonstructobj;
+
+	begin
+
+		json.newjsonobj(committer);
+		committer := json.addattr(committer, 'name', user);
+		committer := json.addattr(committer, 'email', user || '@' || sys_context('USERENV', 'DB_NAME'));
+		json.closejsonobj(committer);
+
+		return committer;
+
+	end github_committer_hash;
+
 	procedure talk (
 		github_account				in			varchar2
 		, api_endpoint				in			varchar2
 		, endpoint_method			in			varchar2
-		, api_data					in			clob
+		, api_data					in			clob default null
 	)
 
 	as
@@ -72,7 +114,7 @@ as
 		);
 
 		-- Method specific headers
-		if upper(endpoint_method) = 'POST' or upper(endpoint_method) = 'PUT' then
+		if (upper(endpoint_method) = 'POST' or upper(endpoint_method) = 'PUT') and (api_data is not null) then
 			utl_http.set_header(
 				r => github_request
 				, name => 'Content-Type'

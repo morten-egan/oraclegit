@@ -132,30 +132,6 @@ as
 
 	end get_oraclegit_env;
 
-	function encode64_clob(
-		content 				in 			clob
-	) 
-	return clob 
-
-	is
-		--the chunk size must be a multiple of 48
-		chunksize 				integer := 576;
-		place 					integer := 1;
-		file_size 				integer;
-		temp_chunk 				varchar(4000);
-		out_clob 				clob;
-	begin
-		file_size := length(content);
-		
-		while (place <= file_size) loop
-		       temp_chunk := substr(content, place, chunksize);
-		       out_clob := out_clob  || utl_raw.cast_to_varchar2(utl_encode.base64_encode(utl_raw.cast_to_raw(temp_chunk)));
-		       place := place + chunksize;
-		end loop;
-
-		return out_clob;
-	end encode64_clob;
-
 	procedure git_enable (
 		git_account					varchar2
 		, git_schema				varchar2 default user
@@ -226,7 +202,7 @@ as
 				, repos_name => new_rep_name
 				, use_org => use_org
 				, org_name => default_org
-				, is_private => rep_private
+				, private => rep_private
 			);
 		end if;
 
