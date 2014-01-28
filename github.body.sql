@@ -114,7 +114,7 @@ as
 		);
 
 		-- Method specific headers
-		if (upper(endpoint_method) = 'POST' or upper(endpoint_method) = 'PUT') and (api_data is not null) then
+		if (api_data is not null) then
 			utl_http.set_header(
 				r => github_request
 				, name => 'Content-Type'
