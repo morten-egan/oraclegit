@@ -162,8 +162,10 @@ as
 		-- dbms_output.put_line(github_api_raw_result);
 
 		exception
-			when others then
+			when utl_http.http_client_error then
 				dbms_output.put_line(UTL_HTTP.GET_DETAILED_SQLERRM);
+				raise;
+			when others then
 				raise;
 
 	end talk;
