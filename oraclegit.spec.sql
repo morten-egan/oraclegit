@@ -28,16 +28,6 @@ as
 		, git_organization			varchar2 default null
 	);
 
-	/** Helper function to base64 encode content
-	* @author Morten Egan
-	* @param content The data to encode
-	* @return The content data as base64
-	*/
-	function encode64_clob(
-		content 				in 			clob
-	) 
-	return clob;
-
 	/** Write captured changes to git repository.
 	* @author Morten Egan
 	* @param git_schema The owner of the object created/updated
@@ -79,6 +69,54 @@ as
 		env_name					varchar2
 	)
 	return varchar2;
+
+	/** Add a github account to the OracleGit system
+	* @author Morten Egan
+	* @param git_account The name of the account.
+	* @param git_passwd The password for the account.
+	* @param git_full_name The full name of the user
+	* @param git_email_address The email address of the user.
+	* @param organization The default organization to use, if any.
+	*/
+	procedure add_github_account (
+		git_account 				varchar2
+		, git_passwd 				varchar2
+		, git_full_name 			varchar2 default null
+		, git_email_address			varchar2 default null
+		, organization 				varchar2 default null
+	);
+
+	/** Add a repository to OracleGit
+	* @author Morten Egan
+	* @param repos_name Name of the repository
+	* @param repos_owner The owner of the repository
+	* @param repos_organization Organization of repository
+	* @param repos_branch Branch to use in the repository, if different than default
+	*/
+	procedure add_github_repository (
+		repos_name 					varchar2
+		, repos_owner 				varchar2
+		, repos_organization		varchar2 default null
+		, repos_branch				varchar2 default null
+	);
+
+	/** Add object for github tracking
+	* @author Morten Egan
+	* @param repos_name The repository name
+	* @param oracle_schema_name The oracle owner of the object
+	* @param obj_name The object name in oracle
+	* @param obj_type The type of object
+	* @param obj_path The github path of the object
+	* @param obj_sha The sha of the github file
+	*/
+	procedure add_object_tracking (
+		repos_name 					varchar2
+		, oracle_schema_name		varchar2
+		, obj_name					varchar2
+		, obj_type					varchar2
+		, obj_path					varchar2
+		, obj_sha					varchar2
+	);
 
 end oraclegit;
 /
