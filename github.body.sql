@@ -80,6 +80,11 @@ as
 
 	begin
 
+		-- Always reset result
+		github.github_api_raw_result := null;
+
+		-- dbms_output.put_line('API data: ' || api_data);
+
 		-- Extended error checking
 		utl_http.set_response_error_check(
 			enable => true
@@ -93,6 +98,7 @@ as
 			, oraclegit.get_oraclegit_env('github_wallet_passwd')
 		);
 
+		-- dbms_output.put_line('Calling: ' || oraclegit.get_oraclegit_env('github_api_location') || api_endpoint);
 		-- Start the request
 		github_request := utl_http.begin_request(
 			url => oraclegit.get_oraclegit_env('github_api_location') || api_endpoint
