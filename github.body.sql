@@ -57,7 +57,7 @@ as
 
 		json.newjsonobj(committer);
 		committer := json.addattr(committer, 'name', user);
-		committer := json.addattr(committer, 'email', user || '@' || sys_context('USERENV', 'DB_NAME'));
+		committer := json.addattr(committer, 'email', 'user.' || user || '@' || sys_context('USERENV', 'DB_NAME') || '.db');
 		json.closejsonobj(committer);
 
 		return committer;
@@ -158,8 +158,6 @@ as
 		);
 
 		github_api_parsed_result := json.string2json(github_api_raw_result);
-
-		-- dbms_output.put_line(github_api_raw_result);
 
 		exception
 			when utl_http.http_client_error then
