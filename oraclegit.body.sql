@@ -1,4 +1,4 @@
-create or replace package body oraclegit.oraclegit
+create or replace package body oraclegit
 
 as
 
@@ -16,7 +16,7 @@ as
 				, object_type
 				, object_id
 			from 
-				all_objects
+				dba_objects
 			where
 				owner = upper(git_schema)
 			and
@@ -39,6 +39,8 @@ as
 				, name => codes.object_name
 				, schema => git_schema
 			);
+
+			-- ddl_clob := oraclegit_ddl.get_ddl(git_schema, codes.object_type, codes.object_name);
 	
 			-- Encode data in base64 for github push
 			ddl_clob := github.encode64_clob(ddl_clob);
@@ -48,7 +50,7 @@ as
 				git_account => rep_account
 				, repos_name => rep_name
 				, path => git_object_path
-				, message => 'Commit of: ' || obj_type || '.' || obj_name || '.'
+				, message => 'Commit of: ' || codes.object_type || '.' || codes.object_name || '.'
 				, content => ddl_clob
 			);
 
@@ -57,7 +59,7 @@ as
 			commited_sha := json.getattrvalue(content_json, 'sha');
 
 			-- Add the object for tracking
-			add_object_tracking(rep_name, git_schema, obj_name, obj_type, git_object_path, commited_sha);
+			add_object_tracking(rep_name, git_schema, codes.object_name, codes.object_type, git_object_path, commited_sha);
 		end loop;
 
 	end init_schema;
@@ -209,6 +211,8 @@ as
 
 	as
 
+		pragma autonomous_transaction;
+
 	begin
 
 		insert into repository_objects (repository_name, schema_name, object_name, object_type, object_path, object_sha)
@@ -218,7 +222,7 @@ as
 
 	end add_object_tracking;
 
-	procedure git_enable (
+	procedure git_enable_schema (
 		git_account					varchar2
 		, git_schema				varchar2 default user
 		, git_repository_name		varchar2 default null
@@ -311,12 +315,70 @@ as
 				rollback;
 				raise;
 
-	end git_enable;
+	end git_enable_schema;
+
+	procedure github_upd_obj_sha (
+		repos_name 					varchar2
+		, oracle_schema_name		varchar2
+		, obj_path 					varchar2
+		, new_sha					varchar2
+	)
+
+	as
+
+		pragma autonomous_transaction;
+
+	begin
+
+		update repository_objects
+		set object_sha = new_sha
+		where repository_name = repos_name
+		and schema_name = oracle_schema_name
+		and object_path = obj_path;
+
+		commit;
+
+	end github_upd_obj_sha;
+
+	function github_object_path_exists (
+		repos_name 					varchar2
+		, oracle_schema_name		varchar2
+		, obj_path 					varchar2
+	)
+	return varchar2
+
+	as
+
+		obj_sha 					varchar2(4000) := null;
+
+	begin
+
+		select
+			object_sha
+		into
+			obj_sha
+		from
+			repository_objects
+		where
+			repository_name = repos_name
+		and
+			schema_name = oracle_schema_name
+		and
+			object_path = obj_path;
+
+		return obj_sha;
+
+		exception
+			when no_data_found then
+				return null;
+
+	end github_object_path_exists;
 
 	procedure git_write (
-		git_schema				varchar2
-		, obj_type				varchar2
-		, obj_name				varchar2
+		git_schema					varchar2
+		, obj_type					varchar2
+		, obj_name					varchar2
+		, obj_data					clob
 	)
 
 	as
@@ -335,39 +397,47 @@ as
 
 		content_json			json.jsonstructobj;
 		commited_sha			varchar2(4000);
+		existing_sha			varchar2(4000);
 
 	begin
 
-		-- First we get the DDL for the plsql
-		ddl_clob := dbms_metadata.get_ddl(
-			object_type => obj_type
-			, name => obj_name
-			, schema => git_schema
-		);
-
 		-- Encode data in base64 for github push
-		ddl_clob := github.encode64_clob(ddl_clob);
+		ddl_clob := github.encode64_clob(obj_data);
 
 		if oraclegit.get_oraclegit_env('multiple_schema_repos') = 'N' then
 			-- Only one repository for one schema
 			open get_acc_rep;
 			fetch get_acc_rep into g_rep, g_acc;
 			close get_acc_rep;
+
+			existing_sha := github_object_path_exists(g_rep, git_schema, git_object_path);
 			-- Push the content to github
-			github_repos_content.create_file(
-				git_account => g_acc
-				, repos_name => g_rep
-				, path => git_object_path
-				, message => 'Commit of: ' || obj_type || '.' || obj_name || '.'
-				, content => ddl_clob
-			);
-
-			-- Save the SHA for the commit for next update
-			content_json := json.String2JSON(json.getAttrValue(github.github_api_parsed_result, 'content'));
-			commited_sha := json.getattrvalue(content_json, 'sha');
-
-			-- Add the object for tracking
-			add_object_tracking(g_rep, git_schema, obj_name, obj_type, git_object_path, commited_sha);
+			if existing_sha is null then
+				github_repos_content.create_file(
+					git_account => g_acc
+					, repos_name => g_rep
+					, path => git_object_path
+					, message => 'Commit of: ' || obj_type || '.' || obj_name || '.'
+					, content => ddl_clob
+				);
+				-- Save the SHA for the commit for next update
+				content_json := json.String2JSON(json.getAttrValue(github.github_api_parsed_result, 'content'));
+				commited_sha := json.getattrvalue(content_json, 'sha');
+				-- Add the object for tracking
+				add_object_tracking(g_rep, git_schema, obj_name, obj_type, git_object_path, commited_sha);
+			else
+				github_repos_content.update_file(
+					git_account => g_acc
+					, repos_name => g_rep
+					, path => git_object_path
+					, message => 'Commit of: ' || obj_type || '.' || obj_name || '.'
+					, content => ddl_clob
+					, sha => existing_sha
+				);
+				content_json := json.String2JSON(json.getAttrValue(github.github_api_parsed_result, 'content'));
+				commited_sha := json.getattrvalue(content_json, 'sha');
+				github_upd_obj_sha(g_rep, git_schema, git_object_path, commited_sha);
+			end if;
 		else
 			for x in get_acc_rep loop
 				github_repos_content.create_file(

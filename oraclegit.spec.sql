@@ -1,4 +1,4 @@
-create or replace package oraclegit.oraclegit
+create or replace package oraclegit
 
 as
 
@@ -20,7 +20,7 @@ as
 	* @param git_repository_desc A short description of the repository
 	* @param git_organization Organization that the repository belongs to
 	*/
-	procedure git_enable (
+	procedure git_enable_schema (
 		git_account					varchar2
 		, git_schema				varchar2 default user
 		, git_repository_name		varchar2 default null
@@ -38,6 +38,7 @@ as
 		git_schema					varchar2
 		, obj_type					varchar2
 		, obj_name					varchar2
+		, obj_data					clob
 	);
 
 	/** Check if a schema is git tracked

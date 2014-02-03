@@ -21,6 +21,36 @@ as
 	) 
 	return clob;
 
+	/** Set default parameters for your GitHub session, such as API endpoint location and more.
+	* @author Morten Egan
+	* @param parameter_name The name of the variable to set.
+	* @param parameter_value The value of the parameter.
+	*/
+	procedure set_default_parameter (
+		parameter_name			in 			varchar2
+		, parameter_value 		in 			varchar2
+	);
+
+	/** Set the Oracle wallet location and password
+	* @author Morten Egan
+	* @param wallet_location The location on the filesystem, excluding filename and trailing slash
+	* @param wallet_password Password to the wallet file. If autologin enabled on wallet, this should be null
+	*/
+	procedure set_session_wallet (
+		wallet_location			in 			varchar2
+		, wallet_password 		in 			varchar2 default null
+	);
+
+	/** Set the account and password for the github session
+	* @author Morten Egan
+	* @param github_username The GitHub account name
+	* @param github_password The password for the github account
+	*/
+	procedure set_logon_info (
+		github_username 		in 			varchar2
+		github_password 		in 			varchar2
+	);
+
 	/** Create a committer hash for github content and commit calls
 	* @author Morten Egan
 	* @return A pljson stucture of github committer hash

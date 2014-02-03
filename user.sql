@@ -8,3 +8,4 @@ grant create procedure to oraclegit;
 grant select any dictionary to oraclegit;
 grant execute on utl_http to oraclegit;
 grant execute on dbms_metadata to oraclegit;
+grant select_catalog_role to oraclegit;

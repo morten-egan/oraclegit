@@ -2,25 +2,59 @@ create or replace package body github
 
 as
 
-	function get_account_passwd (
-		github_account				in			varchar2
+	-- Default variables
+	def_github_api_location		varchar2(4000) := 'https://api.github.com'; 
+
+	-- Session variables
+	session_github_password		varchar2(4000);
+	session_github_username		varchar2(4000);
+	session_wallet_location		varchar2(4000);
+	session_wallet_password		varchar2(4000);
+
+	procedure set_default_parameter (
+		parameter_name			in 			varchar2
+		, parameter_value 		in 			varchar2
 	)
-	return varchar2
 
 	as
 
-		pass_out					varchar2(500) := null;
+		up_parm					varchar2(4000) := upper(parameter_name);
 
 	begin
 
-		select github_password
-		into pass_out
-		from github_account
-		where upper(github_username) = upper(github_account);
+		if up_parm = 'DEF_GITHUB_API_LOCATION' then
+			def_github_api_location := parameter_value;
+		end if;
 
-		return pass_out;
+	end set_default_parameter; 
 
-	end get_account_passwd;
+	procedure set_session_wallet (
+		wallet_location			in 			varchar2
+		, wallet_password 		in 			varchar2 default null
+	)
+
+	as
+
+	begin
+
+		session_wallet_location := wallet_location;
+		session_wallet_password := wallet_password;
+
+	end set_session_wallet;
+
+	procedure set_logon_info (
+		github_username 		in 			varchar2
+		github_password 		in 			varchar2
+	)
+
+	as
+
+	begin
+
+		session_github_username := github_username;
+		session_github_password := github_password;
+
+	end set_passwd;
 
 	function encode64_clob(
 		content 				in 			clob
@@ -43,7 +77,8 @@ as
 		       place := place + chunksize;
 		end loop;
 
-		return out_clob;
+		-- Ok, so github does not like 10|13 characters in their base64??
+		return replace(replace(out_clob, chr(10)), chr(13));
 	end encode64_clob;
 
 	function github_committer_hash
@@ -83,7 +118,7 @@ as
 		-- Always reset result
 		github.github_api_raw_result := null;
 
-		-- dbms_output.put_line('API data: ' || api_data);
+		dbms_output.put_line('API data: ' || api_data);
 
 		-- Extended error checking
 		utl_http.set_response_error_check(
@@ -94,22 +129,22 @@ as
 		);
 
 		utl_http.set_wallet(
-			oraclegit.get_oraclegit_env('github_wallet_location')
-			, oraclegit.get_oraclegit_env('github_wallet_passwd')
+			session_wallet_location
+			, session_wallet_password
 		);
 
-		-- dbms_output.put_line('Calling: ' || oraclegit.get_oraclegit_env('github_api_location') || api_endpoint);
+		dbms_output.put_line('Calling: ' || def_github_api_location || api_endpoint);
 		-- Start the request
 		github_request := utl_http.begin_request(
-			url => oraclegit.get_oraclegit_env('github_api_location') || api_endpoint
+			url => def_github_api_location || api_endpoint
 			, method => endpoint_method
 		);
 
 		-- Set authentication and headers
 		utl_http.set_authentication(
 			r => github_request
-			, username => github_account
-			, password => get_account_passwd(github_account)
+			, username => session_github_username
+			, password => session_github_password
 			, scheme => 'Basic'
 			, for_proxy => false
 		);
