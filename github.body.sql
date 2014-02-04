@@ -44,7 +44,7 @@ as
 
 	procedure set_logon_info (
 		github_username 		in 			varchar2
-		github_password 		in 			varchar2
+		, github_password 		in 			varchar2
 	)
 
 	as
@@ -54,7 +54,7 @@ as
 		session_github_username := github_username;
 		session_github_password := github_password;
 
-	end set_passwd;
+	end set_logon_info;
 
 	function encode64_clob(
 		content 				in 			clob

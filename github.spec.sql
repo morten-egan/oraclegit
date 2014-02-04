@@ -48,7 +48,7 @@ as
 	*/
 	procedure set_logon_info (
 		github_username 		in 			varchar2
-		github_password 		in 			varchar2
+		, github_password 		in 			varchar2
 	);
 
 	/** Create a committer hash for github content and commit calls
