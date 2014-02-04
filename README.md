@@ -101,3 +101,19 @@ For the examples below, we expect wallet location to be */home/oracle/wallet* an
 		);
 	end;
 	/
+
+###Push a file to the newly created repository:
+	declare
+	  myjson json.jsonstructobj;
+	begin
+	  github.set_session_wallet('file:/home/oracle/wallet', 'Manager123');
+	  github.set_logon_info('morten-egan', 'Manager002');
+	  github_repos_content.create_file (
+	    git_account => 'morten-egan'
+	    , repos_name => 'trepos'
+	    , path => 'myNewFile.txt'
+	    , message => 'Just a commit message'
+	    , content => github.encode64_clob('Hello GitHub')
+	  );
+	end;
+	/
