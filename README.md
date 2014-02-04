@@ -34,37 +34,37 @@ grant execute on dbms_metadata to oraclegit;
 ###Add Access Control List
 If you are installing this into oracle 11g or higher we need to create an ACL for utl_http and the user we created in the previous step [This should be run as sys]:
 
-BEGIN
-  DBMS_NETWORK_ACL_ADMIN.create_acl (
-    acl          => 'github_acl.xml', 
-    description  => 'ACL definition for Github.com access',
-    principal    => 'ORACLEGIT',
-    is_grant     => TRUE, 
-    privilege    => 'connect',
-    start_date   => SYSTIMESTAMP,
-    end_date     => NULL);
+	BEGIN
+	  DBMS_NETWORK_ACL_ADMIN.create_acl (
+	    acl          => 'github_acl.xml', 
+	    description  => 'ACL definition for Github.com access',
+	    principal    => 'ORACLEGIT',
+	    is_grant     => TRUE, 
+	    privilege    => 'connect',
+	    start_date   => SYSTIMESTAMP,
+	    end_date     => NULL);
 
-  COMMIT;
+	  COMMIT;
 
-dbms_network_acl_admin.add_privilege (
-			acl	 => 'github_acl.xml',
-			principal	 => 'ORACLEGIT',
-			is_grant	 => true,
-			privilege	 => 'resolve'
-		);
-		commit;
+	dbms_network_acl_admin.add_privilege (
+				acl	 => 'github_acl.xml',
+				principal	 => 'ORACLEGIT',
+				is_grant	 => true,
+				privilege	 => 'resolve'
+			);
+			commit;
 
-		dbms_network_acl_admin.assign_acl (
-			acl          => 'github_acl.xml',
-			host         => 'api.github.com',
-			lower_port	 => 443,
-			upper_port	 => null
-		);
-		commit;
+			dbms_network_acl_admin.assign_acl (
+				acl          => 'github_acl.xml',
+				host         => 'api.github.com',
+				lower_port	 => 443,
+				upper_port	 => null
+			);
+			commit;
 
-  COMMIT;
-END;
-/
+	  COMMIT;
+	END;
+	/
 
 ###Install packages
 
