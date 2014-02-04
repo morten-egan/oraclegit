@@ -20,16 +20,16 @@ orapki wallet add -wallet /home/oracle/wallet -trusted_cert -cert "/home/oracle/
 ###Create a user
 Create a user to install the packages into. You can user this template:
 
-create user oraclegit identified by oraclegit
-default tablespace users
-quota unlimited on users;
+	create user oraclegit identified by oraclegit
+	default tablespace users
+	quota unlimited on users;
 
-grant create session to oraclegit;
-grant create table to oraclegit;
-grant create procedure to oraclegit;
-grant select any dictionary to oraclegit;
-grant execute on utl_http to oraclegit;
-grant execute on dbms_metadata to oraclegit;
+	grant create session to oraclegit;
+	grant create table to oraclegit;
+	grant create procedure to oraclegit;
+	grant select any dictionary to oraclegit;
+	grant execute on utl_http to oraclegit;
+	grant execute on dbms_metadata to oraclegit;
 
 ###Add Access Control List
 If you are installing this into oracle 11g or higher we need to create an ACL for utl_http and the user we created in the previous step [This should be run as sys]:
@@ -68,17 +68,36 @@ If you are installing this into oracle 11g or higher we need to create an ACL fo
 
 ###Install packages
 
-To install the packages run the following commands:
+To install the packages run the following commands as the user we created:
 
-@json.spec.sql
-@github.spec.sql
-@github_repos.spec.sql
-@github_repos_content.spec.sql
-@github_issues.spec.sql
-@json.body.sql
-@github.body.sql
-@github_repos.body.sql
-@github_repos_content.body.sql
-@github_issues.body.sql
+	@json.spec.sql
+	@github.spec.sql
+	@github_repos.spec.sql
+	@github_repos_content.spec.sql
+	@github_issues.spec.sql
+	@json.body.sql
+	@github.body.sql
+	@github_repos.body.sql
+	@github_repos_content.body.sql
+	@github_issues.body.sql
 
 ##Examples
+
+For the examples below, we expect wallet location to be */home/oracle/wallet* and wallet password to be *WalletPasswd123*. Also we are using a github test user with the username of *github-user* with the password *gitPass123*.
+
+###Create a repository:
+	declare
+	  myjson json.jsonstructobj;
+	begin
+		github.set_session_wallet('file:/home/oracle/wallet', 'WalletPasswd123');
+		github.set_logon_info('github-user', 'gitPass123');
+		github_repos.repos_create (
+			git_account => 'github-user'
+			, repos_name => 'trepos'
+			, use_org => false
+			, org_name => null
+			, private => false
+			, auto_init => true
+		);
+	end;
+	/
