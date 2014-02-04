@@ -109,7 +109,7 @@ For the examples below, we expect wallet location to be */home/oracle/wallet* an
 	  github.set_session_wallet('file:/home/oracle/wallet', 'Manager123');
 	  github.set_logon_info('github-user', 'gitPass123');
 	  github_repos_content.create_file (
-	    git_account => 'morten-egan'
+	    git_account => 'github-user'
 	    , repos_name => 'trepos'
 	    , path => 'myNewFile.txt'
 	    , message => 'Just a commit message'
