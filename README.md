@@ -12,10 +12,10 @@ To use this package, you will need to install the GitHub ssl certificates into a
 
 ###Create wallet
 
-orapki wallet create -wallet /home/oracle/wallet -pwd WalletPasswd123
-orapki wallet add -wallet /home/oracle/wallet -trusted_cert -cert "/home/oracle/cert1.crt" -pwd WalletPasswd123
-orapki wallet add -wallet /home/oracle/wallet -trusted_cert -cert "/home/oracle/cert2.crt" -pwd WalletPasswd123
-orapki wallet add -wallet /home/oracle/wallet -trusted_cert -cert "/home/oracle/cert3.crt" -pwd WalletPasswd123
+	orapki wallet create -wallet /home/oracle/wallet -pwd WalletPasswd123
+	orapki wallet add -wallet /home/oracle/wallet -trusted_cert -cert "/home/oracle/cert1.crt" -pwd WalletPasswd123
+	orapki wallet add -wallet /home/oracle/wallet -trusted_cert -cert "/home/oracle/cert2.crt" -pwd WalletPasswd123
+	orapki wallet add -wallet /home/oracle/wallet -trusted_cert -cert "/home/oracle/cert3.crt" -pwd WalletPasswd123
 
 ###Create a user
 Create a user to install the packages into. You can user this template:
