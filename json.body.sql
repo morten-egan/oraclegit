@@ -111,8 +111,8 @@ end my_customized_print;
 procedure print(p_str varchar2) is
 begin
      -- this my customized output comment these line above to put your's.
-	 htp.print(p_str);
-	 -- dbms_output.put_line(p_str);
+	 -- htp.print(p_str);
+	 dbms_output.put_line(p_str);
 	 -- end of customization.
 end print;
 
