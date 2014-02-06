@@ -2,7 +2,8 @@ create or replace package github_repos
 
 as
 
-	/** Interface to Github repositories API
+	/** Interface to Github repositories API. To call any of these, we expect that github session has been
+	* set up prior to calling.
 	* @author Morten Egan (github.com/morten-egan)
 	* @project OracleGit
 	* @version 0.1.0
@@ -49,6 +50,19 @@ as
 		, repos_name				varchar2
 	)
 	return json.jsonstructobj;
+
+	/** Repository list
+	* @author Morten Egan
+	* @param 
+	*/
+	function repositories (
+		git_account					varchar2
+		, repos_type 				varchar2 default 'owner'
+		, repos_sort				varchar2 default 'full_name'
+		, repos_direction			varchar2 default 'asc'
+	)
+	-- return json.jsonstructobj;
+	return number;
 
 end github_repos;
 /

@@ -6,10 +6,21 @@ as
 	def_github_api_location		varchar2(4000) := 'https://api.github.com'; 
 
 	-- Session variables
-	session_github_password		varchar2(4000);
-	session_github_username		varchar2(4000);
-	session_wallet_location		varchar2(4000);
-	session_wallet_password		varchar2(4000);
+	session_github_password		varchar2(4000) := null;
+	session_github_username		varchar2(4000) := null;
+	session_wallet_location		varchar2(4000) := null;
+	session_wallet_password		varchar2(4000) := null;
+
+	function get_session_github_user
+	return varchar2
+	
+	as
+
+	begin
+
+		return session_github_username;
+
+	end get_session_github_user;
 
 	procedure set_default_parameter (
 		parameter_name			in 			varchar2

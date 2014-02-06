@@ -83,5 +83,40 @@ as
 
 	end repos_get;
 
+	function repositories (
+		git_account					varchar2
+		, repos_type 				varchar2 default 'owner'
+		, repos_sort				varchar2 default 'full_name'
+		, repos_direction			varchar2 default 'asc'
+	)
+	-- return json.jsonstructobj
+	return number
+
+	as
+
+		github_api_endpoint			varchar2(4000) := '/users/' || git_account ||'/repos';
+		github_api_endpoint_method	varchar2(100) := 'GET';
+		github_api_json				json.jsonstructobj;
+
+	begin
+
+		json.newjsonobj(github_api_json);
+		github_api_json := json.addattr(github_api_json, 'type', repos_type);
+		github_api_json := json.addattr(github_api_json, 'sort', repos_sort);
+		github_api_json := json.addattr(github_api_json, 'direction', repos_direction);
+		json.closejsonobj(github_api_json);
+
+		github.talk(
+			github_account => git_account
+			, api_endpoint => github_api_endpoint
+			, endpoint_method => github_api_endpoint_method
+			, api_data => json.json2string(github_api_json)
+		);
+
+		-- return github.github_api_parsed_result;
+		return 1;
+
+	end repositories;
+
 end github_repos;
 /

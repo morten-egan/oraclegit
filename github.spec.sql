@@ -51,6 +51,13 @@ as
 		, github_password 		in 			varchar2
 	);
 
+	/** Get the current github username set for the session
+	* @author Morten Egan
+	* @return Current set github username for session
+	*/
+	function get_session_github_user
+	return varchar2;
+
 	/** Create a committer hash for github content and commit calls
 	* @author Morten Egan
 	* @return A pljson stucture of github committer hash
