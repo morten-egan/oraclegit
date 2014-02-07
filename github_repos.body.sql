@@ -89,8 +89,7 @@ as
 		, repos_sort				varchar2 default 'full_name'
 		, repos_direction			varchar2 default 'asc'
 	)
-	-- return json.jsonstructobj
-	return number
+	return json.jsonstructobj
 
 	as
 
@@ -113,8 +112,7 @@ as
 			, api_data => json.json2string(github_api_json)
 		);
 
-		-- return github.github_api_parsed_result;
-		return 1;
+		return github.github_api_parsed_result;
 
 	end repositories;
 

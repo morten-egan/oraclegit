@@ -61,8 +61,7 @@ as
 		, repos_sort				varchar2 default 'full_name'
 		, repos_direction			varchar2 default 'asc'
 	)
-	-- return json.jsonstructobj;
-	return number;
+	return json.jsonstructobj;
 
 end github_repos;
 /

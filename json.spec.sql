@@ -75,8 +75,8 @@ function addAttr(p_obj JSONStructObj, n varchar2, p_objValue JSONStructObj) retu
 function addArray(p_tab JSONArray, p_format boolean default false) return JSONStructObj;
 function addArray(p_obj JSONStructObj, p_table JSONArray, p_formated boolean default false) return JSONStructObj;
 function array2String(p_tab JSONArray) return varchar2;
-function JSON2String(p_obj in out nocopy JSONStructObj, p_only_an_array boolean default false) return varchar2;
-function String2JSON(p_str varchar2, pStrDelimiter varchar2 default g_stringDelimiter) return JSONStructObj;
+function JSON2String(p_obj in out nocopy JSONStructObj, p_only_an_array boolean default false) return clob;
+function String2JSON(p_str clob, pStrDelimiter varchar2 default g_stringDelimiter) return JSONStructObj;
 procedure HTMLdumpJSONObj(p_obj in out nocopy JSONStructObj);
 function getAttrValue( p_obj JSONStructObj, pname varchar2, pdecode boolean default true, 
 		 			   pOutputStrDelimiter varchar2 default g_stringDelimiter,
@@ -89,6 +89,10 @@ procedure print(p_str varchar2);
 function getVersion return varchar2;
 procedure streamOutput(pobj JSONStructObj);
 procedure test;
+
+procedure getJsonObjFromJsonObjArr( p_obj in JSONStructObj, jsonDocCount out pls_integer, f_obj out JSONStructObj);
+function getComplexValue( p_obj JSONStructObj, pidx pls_integer, p_ArrayOrObject varchar2 default 'ARRAY') return varchar2;
+function getComplexValueAsArray( p_obj JSONStructObj, pidx pls_integer, p_ArrayOrObject varchar2 default 'ARRAY') return JSONArray;
 
 END JSON;
 /

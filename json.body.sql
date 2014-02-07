@@ -837,9 +837,9 @@ end array2String;
 --------------------------------------------------------------------------------
 -- Returns the JSON object into a string
 --------------------------------------------------------------------------------
-function JSON2String(p_obj in out nocopy JSONStructObj, p_only_an_array boolean default false) return varchar2 is
+function JSON2String(p_obj in out nocopy JSONStructObj, p_only_an_array boolean default false) return clob is
   i pls_integer;
-  myStrObj varchar2(32000);
+  myStrObj clob;
 begin
     if (p_only_an_array) then
 	   -- the object only contains an array so remove { and }.
@@ -875,12 +875,87 @@ begin
 end JSON2String;
 
 --------------------------------------------------------------------------------
+-- Extract json docs from array of json docs
+--------------------------------------------------------------------------------
+procedure getJsonObjFromJsonObjArr( p_obj in JSONStructObj, jsonDocCount out pls_integer, f_obj out JSONStructObj) 
+is
+  my_obj JSONStructObj := p_obj;
+  fixed_obj JSONStructObj;
+  temp_obj JSONStructObj;
+  ln_count_OpenBracket pls_integer := 0;
+  my_value JSONArray;
+  blank_tab JSONArray;
+  i number := 1; -- index of the array of values which are extracted from jsonStruct.
+  j pls_integer := 1;
+  
+  main_open varchar2(20) := 'OPENBRACKET';
+  main_start pls_integer;
+  main_close varchar2(20) := 'CLOSEBRACKET';
+  main_end pls_integer;
+  lv_what varchar2(10);
+  in_doc boolean := false;
+begin
+
+	jsonDocCount := 0;
+
+	json.newjsonobj(fixed_obj);
+	json.newjsonobj(temp_obj);
+
+	lv_what := 'BRACE';
+    
+	while (j is not null) loop
+	  -- dbms_output.put_line('C as of now: ' || ln_count_OpenBracket);
+	  if ln_count_OpenBracket >= 1 then
+	  	in_doc := true;
+	  end if;
+	  if(my_obj(j).type = main_open) then
+	  	main_start := j;
+	  end if;
+	  if(my_obj(j).type = main_close) then
+	  	main_end := j;
+	  end if;
+
+	  -- dbms_output.put_line(my_obj(j).type);
+	  if(my_obj(j).type = 'OPEN'||lv_what) then
+	  	-- dbms_output.put_line('Got open');
+	    ln_count_OpenBracket := ln_count_OpenBracket + 1;
+	  elsif (my_obj(j).type = 'CLOSE'||lv_what) then
+	  	-- dbms_output.put_line('Got close');
+	    ln_count_OpenBracket := ln_count_OpenBracket - 1;
+	  end if;
+
+	  if ln_count_OpenBracket >= 1 then
+	  	-- Add to temp obj for replacement
+		temp_obj(i) := my_obj(j);
+		i := i + 1;
+	  end if;
+
+	  -- dbms_output.put_line('C as of now: ' || ln_count_OpenBracket);
+	  if (ln_count_OpenBracket = 0 and in_doc) then
+	    jsonDocCount := jsonDocCount + 1;
+	    json.closejsonobj(temp_obj);
+	    fixed_obj := addAttr(fixed_obj, 'AV_' || jsonDocCount, temp_obj);
+	    json.newjsonobj(temp_obj);
+	    in_doc := false;
+	    i := 1;
+	  end if;
+	  j := my_obj.next(j);
+	end loop;
+	-- Handle objs
+	json.closejsonobj(fixed_obj);
+	f_obj := fixed_obj;
+  exception
+  when others then
+     raise;
+end getJsonObjFromJsonObjArr;
+
+--------------------------------------------------------------------------------
 -- Returns a JSON object with a string
 --------------------------------------------------------------------------------
-function String2JSON(p_str varchar2, pStrDelimiter varchar2 default g_stringDelimiter) return JSONStructObj is
+function String2JSON(p_str clob, pStrDelimiter varchar2 default g_stringDelimiter) return JSONStructObj is
   Obj JSONStructObj;
-  tmpStr varchar2(32000) := p_str;
-  buf varchar2(32000);
+  tmpStr clob := p_str;
+  buf clob;
   i pls_integer := 1;
   CutPosition pls_integer := 1;
   my_tabTmp JSONArray;
@@ -926,7 +1001,7 @@ begin
 	-- 	   	 that's why there is the condition : "and i < 1000"
 	-- I have to correct that sucking bug...
 	--
-	while (length(tmpStr) > 0  and i < 1000) loop
+	while (length(tmpStr) > 0  and i < 10000) loop
 		    -- removing first spaces
 		while (  substr(tmpStr,1,1) = ' ' ) loop
 			  tmpStr := substr(tmpStr,2, length(tmpStr));

@@ -29,7 +29,8 @@ as
 	* @return A table list of repositories
 	*/
 	function repositories (
-		repos_type 					varchar2 default 'owner'
+		git_account					varchar2 github.get_session_github_user
+		, repos_type 				varchar2 default 'owner'
 		, repos_sort				varchar2 default 'full_name'
 		, repos_direction			varchar2 default 'asc'
 	)

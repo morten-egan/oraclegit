@@ -129,7 +129,7 @@ as
 		-- Always reset result
 		github.github_api_raw_result := null;
 
-		dbms_output.put_line('API data: ' || api_data);
+		-- dbms_output.put_line('API data: ' || api_data);
 
 		-- Extended error checking
 		utl_http.set_response_error_check(
@@ -144,7 +144,7 @@ as
 			, session_wallet_password
 		);
 
-		dbms_output.put_line('Calling: ' || def_github_api_location || api_endpoint);
+		-- dbms_output.put_line('Calling: ' || def_github_api_location || api_endpoint);
 		-- Start the request
 		github_request := utl_http.begin_request(
 			url => def_github_api_location || api_endpoint
