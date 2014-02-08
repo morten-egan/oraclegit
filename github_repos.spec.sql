@@ -40,7 +40,7 @@ as
 		, org_name					varchar2 default null
 	);
 
-	/** Return information about repository.
+	/** Return information about specific repository.
 	* @author Morten Egan
 	* @param git_account The account owner of the repository
 	* @param repos_name The name of the repository to get
@@ -53,7 +53,9 @@ as
 
 	/** Repository list
 	* @author Morten Egan
-	* @param 
+	* @param repos_type Can be one of all, owner, member. Default: owner
+	* @param repos_sort Can be one of created, updated, pushed, full_name. Default: full_name
+	* @param repos_direction Can be one of asc or desc. Default: when using full_name: asc, otherwise desc
 	*/
 	function repositories (
 		git_account					varchar2
@@ -62,6 +64,116 @@ as
 		, repos_direction			varchar2 default 'asc'
 	)
 	return json.jsonstructobj;
+
+	/** Edit an existing repository
+	* @author Morten Egan
+	* @param git_account The account that owns the repository
+	* @param repos_name	The name of the repository
+	* @param description A short description of the repository
+	* @param homepage A URL with more information about the repository
+	* @param private Either true to make the repository private, or false to make it public. Creating private repositories requires a paid GitHub account. Default: false
+	* @param has_issues Either true to enable issues for this repository, false to disable them. Default: true
+	* @param has_wiki Either true to enable the wiki for this repository, false to disable it. Default: true
+	* @param has_downloads Either true to enable downloads for this repository, false to disable them. Default: true
+	* @param default_branch Updates the default branch for this repository.
+	*/
+	procedure repos_edit (
+		git_account					varchar2
+		, repos_name				varchar2
+		, description				varchar2 default null
+		, homepage					varchar2 default null
+		, private 					boolean default false
+		, has_issues				boolean default true
+		, has_wiki					boolean default true
+		, has_downloads				boolean default true
+		, default_branch 			varchar2 default null
+	);
+
+	/** List contributors to the specified repository, sorted by the number of commits per contributor in descending order.
+	* @author Morten Egan
+	* @param git_account The owner of the repository
+	* @param repos_name The name of the repository
+	* @param anon Set to 1 or true to include anonymous contributors in results.
+	* @return 
+	*/
+	function repos_contributors (
+		git_account					varchar2
+		, repos_name				varchar2
+		, anon 						varchar2 default "1"
+	)
+	return json.jsonstructobj;
+
+	/** List languages for the specified repository. The value on the right of a language is the number of bytes of code written in that language.
+	* @author Morten Egan
+	* @param git_account The owner of the repository
+	* @param repos_name The name of the repository
+	* @return Languages used
+	*/
+	function repos_languages (
+		git_account					varchar2
+		, repos_name				varchar2
+	)
+	return json.jsonstructobj;
+
+	/** List teams for the specified repository
+	* @author Morten Egan
+	* @param git_account The owner of the repository
+	* @param repos_name The name of the repository
+	* @return Teams in the repository
+	*/
+	function repos_teams (
+		git_account					varchar2
+		, repos_name				varchar2
+	)
+	return json.jsonstructobj;
+
+	/** List tags for the specified repository
+	* @author Morten Egan
+	* @param git_account The owner of the repository
+	* @param repos_name The name of the repository
+	* @return Tags in the repository
+	*/
+	function repos_tags (
+		git_account					varchar2
+		, repos_name				varchar2
+	)
+	return json.jsonstructobj;
+
+	/** List branches for the specified repository
+	* @author Morten Egan
+	* @param git_account The owner of the repository
+	* @param repos_name The name of the repository
+	* @return Branches in the repository
+	*/
+	function repos_branches (
+		git_account					varchar2
+		, repos_name				varchar2
+	)
+	return json.jsonstructobj;
+
+	/** Get specific branch in repository
+	* @author Morten Egan
+	* @param git_account The owner of the repository
+	* @param repos_name The name of the repository
+	* @return Branch details of specified branch
+	*/
+	function repos_branch_get (
+		git_account					varchar2
+		, repos_name				varchar2
+		, branch 					varchar2
+	)
+	return json.jsonstructobj;
+
+	/** Deleting a repository requires admin access. If OAuth is used, the delete_repo scope is required.
+	* @author Morten Egan
+	* @param git_account The owner of the repository
+	* @param repos_name The name of the repository
+	*/
+	procedure repos_delete (
+		git_account					varchar2
+		, repos_name				varchar2
+	);
+
 
 end github_repos;
 /
