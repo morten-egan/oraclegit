@@ -70,12 +70,45 @@ as
 	* @param repos_name The name of the repository
 	* @param path The content path.
 	* @param ref The name of the commit/branch/tag. Default: the repository’s default branch (usually master)
+	* @return The full meta information and content of the requested object
 	*/
 	function get_content (
 		git_account					varchar2
 		, repos_name				varchar2
 		, path						varchar2
 		, ref 						varchar2 default null
+	)
+	return json.jsonstructobj;
+
+	/** This method will return a 302 to a URL to download a tarball or zipball archive for a repository. 
+	* Please make sure your HTTP framework is configured to follow redirects 
+	* or you will need to use the Location header to make a second GET request.
+	* @author Morten Egan
+	* @param git_account Owner of the repository
+	* @param repos_name The name of the repository
+	* @param archive_format Can be either tarball or zipball. Default: tarball
+	* @param ref A valid Git reference. Default: the repository’s default branch (usually master)
+	* @return A link to an archive
+	*/
+	function get_archive_link (
+		git_account					varchar2
+		, repos_name				varchar2
+		, archive_format			varchar2 default 'tarball'
+		, ref 						varchar2 default 'master'
+	)
+	return varchar2;
+
+	/** This method returns the preferred README for a repository.
+	* @author Morten Egan
+	* @param git_account Owner of the repository
+	* @param repos_name The name of the repository
+	* @param ref The name of the commit/branch/tag. Default: the repository’s default branch (usually master)
+	* @return JSON object of the Readme file
+	*/
+	function get_readme (
+		git_account					varchar2
+		, repos_name				varchar2
+		, ref 						varchar2 default 'master'
 	)
 	return json.jsonstructobj;
 

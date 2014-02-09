@@ -139,5 +139,62 @@ as
 
 	end get_content;
 
+	function get_archive_link (
+		git_account					varchar2
+		, repos_name				varchar2
+		, archive_format			varchar2 default 'tarball'
+		, ref 						varchar2 default 'master'
+	)
+	return varchar2
+
+	as
+
+		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/' || archive_format || '/' || ref;
+		github_api_endpoint_method	varchar2(100) := 'GET';
+		github_api_json				json.jsonstructobj;
+
+	begin
+
+		github.talk(
+			github_account => git_account
+			, api_endpoint => github_api_endpoint
+			, endpoint_method => github_api_endpoint_method
+		);
+
+		-- Now we have a header with the link to the archive
+		return github.github_response_headers('Location');
+
+	end get_archive_link;
+
+	function get_readme (
+		git_account					varchar2
+		, repos_name				varchar2
+		, ref 						varchar2 default 'master'
+	)
+	return json.jsonstructobj
+
+	as
+
+		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/readme';
+		github_api_endpoint_method	varchar2(100) := 'GET';
+		github_api_json				json.jsonstructobj;
+
+	begin
+
+		json.newjsonobj(github_api_json);
+		github_api_json := json.addattr(github_api_json, 'ref', ref);
+		json.closejsonobj(github_api_json);
+
+		github.talk(
+			github_account => git_account
+			, api_endpoint => github_api_endpoint
+			, endpoint_method => github_api_endpoint_method
+			, api_data => json.json2string(github_api_json)
+		);
+
+		return github.github_api_parsed_result;
+
+	end get_readme;
+
 end github_repos_content;
 /
