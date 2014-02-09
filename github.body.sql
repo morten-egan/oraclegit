@@ -123,6 +123,9 @@ as
 		github_response				utl_http.resp;
 		github_result_piece			varchar2(32000);
 
+		github_header_name			varchar2(4000);
+		github_header_value			varchar2(4000);
+
 
 	begin
 
@@ -142,6 +145,13 @@ as
 		utl_http.set_wallet(
 			session_wallet_location
 			, session_wallet_password
+		);
+
+		-- We set follow redirects to 1.
+		-- Those github services that sends you to a next destination
+		-- will be handled in their own procedure
+		utl_http.set_follow_redirect (
+			max_redirects => 1
 		);
 
 		-- dbms_output.put_line('Calling: ' || def_github_api_location || api_endpoint);
@@ -187,6 +197,21 @@ as
 		github_response := utl_http.get_response (
 			r => github_request
 		);
+
+		-- Should handle exceptions here
+		-- github_response.status_code
+		-- github_response.reason_phrase
+
+		-- Load header data before reading body
+		for i in 1..utl_http.get_header_count(r => github_response) loop
+			utl_http.get_header(
+				r => github_response
+				, n => i
+				, name => github_header_name
+				, value => github_header_value
+			);
+			github_response_headers(github_header_name) := github_header_value;
+		end loop;
 
 		-- Collect response and put into api_result
 		begin

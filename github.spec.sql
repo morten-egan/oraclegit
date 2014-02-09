@@ -11,6 +11,9 @@ as
 	github_api_raw_result			clob;
 	github_api_parsed_result		json.jsonstructobj;
 
+	type header_list is table of varchar2(4000) index by varchar2(250);
+	github_response_headers			header_list;
+
 	/** Helper function to base64 encode content
 	* @author Morten Egan
 	* @param content The data to encode
