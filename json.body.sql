@@ -875,6 +875,23 @@ begin
 end JSON2String;
 
 --------------------------------------------------------------------------------
+-- Return a list as a simple json array
+--------------------------------------------------------------------------------
+function listToJsonArrayString(p_arr JSONArray) return varchar2
+as
+arr_string varchar2(32000);
+begin
+	arr_string := g_openBracket;
+	for i in 1..p_arr.count loop
+		arr_string := arr_string || g_stringDelimiter || p_arr(i) || g_stringDelimiter || g_separation;
+	end loop;
+	arr_string := substr(arr_string, 1, length(arr_string) - 2);
+	arr_string := arr_string || g_closeBracket;
+
+	return arr_string;
+end listToJsonArrayString;
+
+--------------------------------------------------------------------------------
 -- Extract json docs from array of json docs
 --------------------------------------------------------------------------------
 procedure getJsonObjFromJsonObjArr( p_obj in JSONStructObj, jsonDocCount out pls_integer, f_obj out JSONStructObj) 

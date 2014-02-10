@@ -94,5 +94,7 @@ procedure getJsonObjFromJsonObjArr( p_obj in JSONStructObj, jsonDocCount out pls
 function getComplexValue( p_obj JSONStructObj, pidx pls_integer, p_ArrayOrObject varchar2 default 'ARRAY') return varchar2;
 function getComplexValueAsArray( p_obj JSONStructObj, pidx pls_integer, p_ArrayOrObject varchar2 default 'ARRAY') return JSONArray;
 
+function listToJsonArrayString(p_arr JSONArray) return varchar2;
+
 END JSON;
 /

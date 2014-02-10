@@ -9,7 +9,7 @@ as
 	*/
 
 	-- Record types
-	type github_respository is record (
+	type github_repository is record (
 		repos_id 					number
 		, repos_name				varchar2(4000)
 		, repos_full_name			varchar2(4000)
@@ -29,7 +29,7 @@ as
 	* @return A table list of repositories
 	*/
 	function repositories (
-		git_account					varchar2 github.get_session_github_user
+		git_account					varchar2 default github.get_session_github_user
 		, repos_type 				varchar2 default 'owner'
 		, repos_sort				varchar2 default 'full_name'
 		, repos_direction			varchar2 default 'asc'

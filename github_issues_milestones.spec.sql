@@ -10,7 +10,7 @@ as
 
 	/** List milestones for a repository
 	* @author Morten Egan
-	* @param git_account The account that has push privileges to the repository on github
+	* @param git_account The account that owns the repository
 	* @param repos_name The name of the repository
 	* @param state The state of the milestone. Either open or closed. Default: open
 	* @param sort What to sort results by. Either due_date or completeness. Default: due_date
@@ -28,7 +28,7 @@ as
 
 	/** Get a single milestone
 	* @author Morten Egan
-	* @param git_account The account that has push privileges to the repository on github
+	* @param git_account The account that owns the repository
 	* @param repos_name The name of the repository
 	* @param milestone_id The id of the milestone to get
 	* @return The JSON object of a milestone
@@ -42,7 +42,7 @@ as
 
 	/** Create a milestone
 	* @author Morten Egan
-	* @param git_account The account that has push privileges to the repository on github
+	* @param git_account The account that owns the repository
 	* @param repos_name The name of the repository
 	* @param title The title of the milestone.
 	* @param state The state of the milestone. Either open or closed. Default: open
@@ -60,7 +60,7 @@ as
 
 	/** Update a milestone
 	* @author Morten Egan
-	* @param git_account The account that has push privileges to the repository on github
+	* @param git_account The account that owns the repository
 	* @param repos_name The name of the repository
 	* @param milestone_id The id of the milestone to edit
 	* @param title The title of the milestone.
@@ -80,7 +80,7 @@ as
 
 	/** Delete a milestone
 	* @author Morten Egan
-	* @param git_account The account that has push privileges to the repository on github
+	* @param git_account The account that owns the repository
 	* @param repos_name The name of the repository
 	* @param milestone_id The id of the milestone to delete
 	*/

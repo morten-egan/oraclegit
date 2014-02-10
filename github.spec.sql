@@ -8,11 +8,16 @@ as
 	* @version 0.1.0
 	*/
 
+	-- Global variables and types
 	github_api_raw_result			clob;
 	github_api_parsed_result		json.jsonstructobj;
+	github_call_status_code			pls_integer;
+	github_call_status_reason		varchar2(256);
 
-	type header_list is table of varchar2(4000) index by varchar2(250);
-	github_response_headers			header_list;
+	type text_text_arr is table of varchar2(4000) index by varchar2(250);
+	type text_num_arr is table of varchar2(2000) index by pls_integer;
+	github_response_headers			text_text_arr;
+	github_label_list				text_num_arr;
 
 	/** Helper function to base64 encode content
 	* @author Morten Egan

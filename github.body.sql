@@ -199,8 +199,8 @@ as
 		);
 
 		-- Should handle exceptions here
-		-- github_response.status_code
-		-- github_response.reason_phrase
+		github_call_status_code := github_response.status_code;
+		github_call_status_reason := github_response.reason_phrase;
 
 		-- Load header data before reading body
 		for i in 1..utl_http.get_header_count(r => github_response) loop
