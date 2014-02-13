@@ -101,7 +101,7 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/issues/' || issue_id || 'comments/';
+		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/issues/' || issue_id || '/comments';
 		github_api_endpoint_method	varchar2(100) := 'POST';
 		github_api_json				json.jsonstructobj;
 
