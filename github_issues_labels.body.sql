@@ -129,8 +129,6 @@ as
 			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
-
 	end delete_label;
 
 	function list_issue_labels (

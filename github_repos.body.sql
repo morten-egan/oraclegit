@@ -165,7 +165,7 @@ as
 	function repos_contributors (
 		git_account					varchar2
 		, repos_name				varchar2
-		, anon 						varchar2 default "1"
+		, anon 						varchar2 default '1'
 	)
 	return json.jsonstructobj
 

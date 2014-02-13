@@ -18,7 +18,7 @@ as
 	function list_issue_events (
 		git_account					varchar2
 		, repos_name				varchar2
-		, issue_number 				issue_number
+		, issue_number 				number
 	)
 	return json.jsonstructobj;
 

@@ -105,5 +105,7 @@ as
 
 		return github.github_api_parsed_result;
 
+	end compare_commits;
+
 end github_repos_commits;
 /
