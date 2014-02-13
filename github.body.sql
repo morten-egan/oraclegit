@@ -110,6 +110,26 @@ as
 
 	end github_committer_hash;
 
+	procedure parse_github_raw_response
+
+	as
+
+	begin
+
+		-- Because of some bugs in the json pacakge, we need first to add to
+		-- all occurrences of booleans, an extra json key value, or else the parse
+		-- will fail.
+		github_api_raw_result := replace(github_api_raw_result, ':true', ':true,"t1":"t1"');
+		github_api_raw_result := replace(github_api_raw_result, ':false', ':false,"t1":"t1"');
+		-- Now for the parse itself, we need to parse differently if the response is an array
+		-- of json objects or if it is a single json object.
+		/* if substr(github_api_raw_result, 1, 1) = '[' then
+			-- This is an array of json objects parse different then normal.
+			github_api_parsed_result := */
+		github_api_parsed_result := json.string2json(github_api_raw_result);
+
+	end parse_github_raw_response;
+
 	procedure talk (
 		github_account				in			varchar2
 		, api_endpoint				in			varchar2
@@ -234,7 +254,9 @@ as
 			r => github_response
 		);
 
-		github_api_parsed_result := json.string2json(github_api_raw_result);
+		-- Parse output to github_utl readable format 
+		-- github_api_parsed_result := json.string2json(github_api_raw_result);
+		parse_github_raw_response;
 
 		exception
 			when utl_http.http_client_error then
