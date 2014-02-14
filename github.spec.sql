@@ -9,6 +9,13 @@ as
 	*/
 
 	-- Global variables and types
+	type call_result is record (
+		result_type					varchar2(200)
+		, result_count				number
+		, result 					json.jsonstructobj
+	);
+	github_response_result			call_result;
+
 	github_api_raw_result			clob;
 	github_api_parsed_result		json.jsonstructobj;
 	github_call_status_code			pls_integer;

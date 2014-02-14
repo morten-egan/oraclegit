@@ -114,19 +114,36 @@ as
 
 	as
 
+		arr_count					number := 0;
+		arr_fixed_json				json.jsonstructobj;
+		final_json					json.jsonstructobj;
+
 	begin
 
 		-- Because of some bugs in the json pacakge, we need first to add to
 		-- all occurrences of booleans, an extra json key value, or else the parse
 		-- will fail.
-		github_api_raw_result := replace(github_api_raw_result, ':true', ':true,"t1":"t1"');
-		github_api_raw_result := replace(github_api_raw_result, ':false', ':false,"t1":"t1"');
+		github_api_raw_result := replace(github_api_raw_result, '"site_admin":true', '"site_admin":true,"t1":"t1"');
+		github_api_raw_result := replace(github_api_raw_result, '"site_admin":false', '"site_admin":false,"t1":"t1"');
+		github_api_raw_result := replace(github_api_raw_result, '"pull":true', '"pull":true,"t1":"t1"');
+		github_api_raw_result := replace(github_api_raw_result, '"pull":false', '"pull":false,"t1":"t1"');
+
+		arr_fixed_json := json.string2json(github_api_raw_result);
 		-- Now for the parse itself, we need to parse differently if the response is an array
 		-- of json objects or if it is a single json object.
-		/* if substr(github_api_raw_result, 1, 1) = '[' then
+		if substr(github_api_raw_result, 1, 1) = '[' then
 			-- This is an array of json objects parse different then normal.
-			github_api_parsed_result := */
-		github_api_parsed_result := json.string2json(github_api_raw_result);
+			json.getJsonObjFromJsonObjArr(arr_fixed_json, arr_count, final_json);
+			github_response_result.result_type := 'ARRAY_JSON';
+			github_response_result.result_count := arr_count;
+			github_response_result.result := final_json;
+		else
+			github_response_result.result_type := 'SINGLE_JSON';
+			github_response_result.result := arr_fixed_json;
+		end if;
+		
+		-- For backwards compatibility
+		github_api_parsed_result := arr_fixed_json;
 
 	end parse_github_raw_response;
 
