@@ -2,6 +2,34 @@ create or replace package body github_tables
 
 as
 
+	function repository_languages (
+		repos_name 					varchar2
+		, git_account				varchar2 default github.get_session_github_user
+	)
+	return repos_lang_tab
+	pipelined
+
+	as
+
+		table_data					github.call_result;
+		row_result					github_repos_lang;
+		lang_idx					varchar2(4000);
+
+	begin
+
+		table_data := github_repos.repos_languages(git_account, repos_name);
+
+		for i in 1..table_data.result.count loop
+			if table_data.result(i).type = 'ATTRNAME' then
+				row_result.repos_name := repos_name;
+				row_result.repos_lang := replace(table_data.result(i).item, '"');
+				row_result.lang_bytes := json.getAttrValue(table_data.result, row_result.repos_lang);
+				pipe row(row_result);
+			end if;
+		end loop;
+
+	end repository_languages;
+
 	function repositories (
 		git_account					varchar2 default github.get_session_github_user
 		, repos_type 				varchar2 default 'owner'
@@ -13,15 +41,12 @@ as
 
 	as
 
-		table_data					json.jsonstructobj;
+		table_data					github.call_result;
 		row_result					github_repository;
-		repos_count					number;
-		row_working_data_raw		clob;
-		row_working_data 			json.jsonstructobj;
-
-		-- HACK
-		butt_ugly_hack				clob;
-		butt_ugly_hack_json			json.jsonstructobj;
+		row_raw 					clob;
+		row_json					json.jsonstructobj;
+		inner_raw					clob;
+		inner_json					json.jsonstructobj;
 
 	begin
 
@@ -31,22 +56,18 @@ as
 			-- I fix that one, I do a butt ugly hack:
 	
 			table_data := github_repos.repositories(git_account, repos_type, repos_sort, repos_direction);
-			butt_ugly_hack := github.github_api_raw_result;
-			butt_ugly_hack := replace(butt_ugly_hack, '"site_admin":true', '"site_admin":true,"t1":"t1"');
-			butt_ugly_hack := replace(butt_ugly_hack, '"site_admin":false', '"site_admin":false,"t1":"t1"');
-			butt_ugly_hack := replace(butt_ugly_hack, '"pull":true', '"pull":true,"t1":"t1"');
-			butt_ugly_hack := replace(butt_ugly_hack, '"pull":false', '"pull":false,"t1":"t1"');
-			table_data := json.string2json(butt_ugly_hack);
-			json.getJsonObjFromJsonObjArr(table_data, repos_count, butt_ugly_hack_json);
 
-			for x in 1..repos_count loop
-				row_working_data_raw := json.getAttrValue(butt_ugly_hack_json, 'AV_' || x);
-				row_working_data := json.string2json(row_working_data_raw);
-				row_result.repos_id := json.getAttrValue(row_working_data, 'id');
-				row_result.repos_name := json.getAttrValue(row_working_data, 'name');
-				row_result.repos_full_name := json.getAttrValue(row_working_data, 'full_name');
-				row_result.repos_owner := '42';
-				row_result.repos_description := json.getAttrValue(row_working_data, 'description');
+			for rows in 1..table_data.result_count loop
+				row_raw := json.getAttrValue(table_data.result, 'AV_' || rows);
+				row_json := json.string2json(row_raw);
+				row_result.repos_id := json.getAttrValue(row_json, 'id');
+				row_result.repos_name := json.getAttrValue(row_json, 'name');
+				row_result.repos_full_name := json.getAttrValue(row_json, 'full_name');
+				-- Get inner owner
+				inner_raw := json.getAttrValue(row_json, 'owner');
+				inner_json := json.string2json(inner_raw);
+				row_result.repos_owner := json.getAttrValue(inner_json, 'login');
+				row_result.repos_description := json.getAttrValue(row_json, 'description');
 				row_result.repos_created := sysdate;
 				row_result.repos_updated := sysdate;
 
@@ -57,6 +78,61 @@ as
 		return;
 
 	end repositories;
+
+	function repository_issues (
+		git_account					varchar2
+		, repos_name				varchar2
+		, milestone 				varchar2 default null
+		, state						varchar2 default null
+		, assignee					varchar2 default null
+		, creator					varchar2 default null
+		, mentioned					varchar2 default null
+		, labels 					varchar2 default null
+		, sort 						varchar2 default null
+		, direction 				varchar2 default null
+		, since 					varchar2 default null
+	)
+	return repos_issues_tab
+	pipelined
+
+	as
+
+		table_data					github.call_result;
+		row_result					github_issue;
+		row_raw 					clob;
+		row_json					json.jsonstructobj;
+		inner_raw					clob;
+		inner_json					json.jsonstructobj;
+
+	begin
+
+		table_data := github_issues.get_repository_issues (
+			git_account => git_account
+			, repos_name => repos_name
+			, milestone => milestone
+			, state => state
+			, assignee => assignee
+			, creator => creator
+			, mentioned => mentioned
+			, labels => labels
+			, sort => sort
+			, direction => direction
+			, since => since
+		);
+
+		for rows in 1..table_data.result_count loop
+			/* row_raw := json.getAttrValue(table_data.result, 'AV_' || rows);
+			row_json := json.string2json(row_raw);
+
+			row_result.issue_id := json.getAttrValue(row_json, 'number');
+			row_result.api_url := json.getAttrValue(row_json, 'url');
+			row_result.html_url := json.getAttrValue(row_json, 'html_url'); */
+			row_result.issue_id := 0;
+
+			pipe row (row_result);
+		end loop;
+
+	end repository_issues;
 
 end github_tables;
 /

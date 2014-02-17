@@ -131,7 +131,7 @@ as
 		, direction 				varchar2 default null
 		, since 					varchar2 default null
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
@@ -178,7 +178,7 @@ as
 			, api_data => json.json2string(github_api_json)
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end get_repository_issues;
 

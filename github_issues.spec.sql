@@ -68,7 +68,7 @@ as
 		, direction 				varchar2 default null
 		, since 					varchar2 default null
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Edit an issue
 	* @author Morten Egan

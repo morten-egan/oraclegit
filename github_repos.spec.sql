@@ -63,7 +63,7 @@ as
 		, repos_sort				varchar2 default 'full_name'
 		, repos_direction			varchar2 default 'asc'
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Edit an existing repository
 	* @author Morten Egan
@@ -113,7 +113,7 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** List teams for the specified repository
 	* @author Morten Egan

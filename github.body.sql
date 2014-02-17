@@ -127,12 +127,17 @@ as
 		github_api_raw_result := replace(github_api_raw_result, '"site_admin":false', '"site_admin":false,"t1":"t1"');
 		github_api_raw_result := replace(github_api_raw_result, '"pull":true', '"pull":true,"t1":"t1"');
 		github_api_raw_result := replace(github_api_raw_result, '"pull":false', '"pull":false,"t1":"t1"');
+		github_api_raw_result := replace(github_api_raw_result, '"due_on":null', '"due_on":null,"t1":"t1"');
+
+		insert into t_data values(github_api_raw_result);
+		commit;
 
 		arr_fixed_json := json.string2json(github_api_raw_result);
 		-- Now for the parse itself, we need to parse differently if the response is an array
 		-- of json objects or if it is a single json object.
 		if substr(github_api_raw_result, 1, 1) = '[' then
 			-- This is an array of json objects parse different then normal.
+			dbms_output.put_line('Fixing array json');
 			json.getJsonObjFromJsonObjArr(arr_fixed_json, arr_count, final_json);
 			github_response_result.result_type := 'ARRAY_JSON';
 			github_response_result.result_count := arr_count;

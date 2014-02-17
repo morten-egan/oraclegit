@@ -89,7 +89,7 @@ as
 		, repos_sort				varchar2 default 'full_name'
 		, repos_direction			varchar2 default 'asc'
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
@@ -112,7 +112,7 @@ as
 			, api_data => json.json2string(github_api_json)
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end repositories;
 
@@ -196,7 +196,7 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
@@ -212,7 +212,7 @@ as
 			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end repos_languages;
 

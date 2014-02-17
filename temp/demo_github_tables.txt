@@ -1,3 +1,3 @@
-exec github.set_session_wallet('file:/home/oracle/wallet', 'WalletPasswd123');
-exec github.set_logon_info('github-user', 'gitPass123');
+exec github.set_session_wallet('file:/home/oracle/wallet', 'Manager123');
+exec github.set_logon_info('morten-egan', 'Manager02');
 select repos_id, repos_name from table(github_tables.repositories);
