@@ -29,16 +29,16 @@ CREATE OR REPLACE PACKAGE JSON AS
 -- Global Types and records
 --------------------------------------------------------------------------------
 -- type for JSON Array
-type JSONArray is table of varchar2(2000) index by binary_integer;
+type JSONArray is table of clob index by binary_integer;
 
 -- type for all Name/Value Couples in JSON
-type gr_JSONnvCouple is record (name varchar2(255), value varchar2(2000));
+type gr_JSONnvCouple is record (name varchar2(255), value clob);
 
 -- Type for the final JSON generated string
 type JSONItem is record ( type varchar2(100),  -- OPENBRACE, OPENHOOK, CLOSEBRACE, CLOSEHOOK, 
 	 		  	 		  	   				   -- SEPARATION, AFFECTATION, ATTRNAME, ATTRDATA, ARRAYDATA
 											   -- INDENTATION
-	 		  	 		  item varchar2(2000), -- the attribute name or value.
+	 		  	 		  item clob, -- the attribute name or value.
 						  formated boolean default false); -- true if "item" has been already formatted.				  
 type JSONStructObj is table of JSONItem index by binary_integer;
 
@@ -60,7 +60,7 @@ g_spc				 varchar2(2) := '  ';	 -- used to indent the JSON object correctly
 g_js_comment_open	 varchar2(20) := '/*-secure-\n'; -- used to prevent from javascript hijacking
 g_js_comment_close	 varchar2(20) := '\n*/';	 	 -- used to prevent from javascript hijacking
 
-g_indent varchar2(2000) := null;  -- count the recursive imbrications for object 
+g_indent clob := null;  -- count the recursive imbrications for object 
 		  				 	   	  -- +2 spaces when calling openObj 
 								  -- -2 spaces when calling closeObj
 

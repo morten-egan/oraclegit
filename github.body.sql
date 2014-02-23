@@ -92,6 +92,21 @@ as
 		return replace(replace(out_clob, chr(10)), chr(13));
 	end encode64_clob;
 
+	function decode64_clob (
+		content 				in 			clob
+	)
+	return clob
+
+	as
+
+		out_clob				clob;
+
+	begin
+
+		return out_clob;
+
+	end decode64_clob;
+
 	function github_committer_hash
 	return json.jsonstructobj
 
@@ -128,9 +143,6 @@ as
 		github_api_raw_result := replace(github_api_raw_result, '"pull":true', '"pull":true,"t1":"t1"');
 		github_api_raw_result := replace(github_api_raw_result, '"pull":false', '"pull":false,"t1":"t1"');
 		github_api_raw_result := replace(github_api_raw_result, '"due_on":null', '"due_on":null,"t1":"t1"');
-
-		insert into t_data values(github_api_raw_result);
-		commit;
 
 		arr_fixed_json := json.string2json(github_api_raw_result);
 		-- Now for the parse itself, we need to parse differently if the response is an array
@@ -282,12 +294,88 @@ as
 
 		exception
 			when utl_http.http_client_error then
+				null;
+			when others then
+				raise;
+
+	end talk;
+
+	function listen (
+		fetch_url					in 			varchar2
+	)
+	return clob
+
+	as
+
+		fetched_data				clob;
+		github_listen_request		utl_http.req;
+		github_listen_response		utl_http.resp;
+		github_listen_result_piece	varchar2(32000);
+
+	begin
+
+		utl_http.set_wallet(
+			session_wallet_location
+			, session_wallet_password
+		);
+
+		github_listen_request := utl_http.begin_request(
+			url => fetch_url
+			, method => 'GET'
+		);
+
+		-- Set authentication and headers
+		utl_http.set_authentication(
+			r => github_listen_request
+			, username => session_github_username
+			, password => session_github_password
+			, scheme => 'Basic'
+			, for_proxy => false
+		);
+		utl_http.set_header(
+			r => github_listen_request
+			, name => 'User-Agent'
+			, value => 'github_utl oracle package'
+		);
+
+		github_listen_response := utl_http.get_response (
+			r => github_listen_request
+		);
+
+		-- Should handle exceptions here
+		github_call_status_code := github_listen_response.status_code;
+		github_call_status_reason := github_listen_response.reason_phrase;
+
+		begin
+			loop
+				utl_http.read_text (
+					r => github_listen_response
+					, data => github_listen_result_piece
+				);
+				fetched_data := fetched_data || github_listen_result_piece;
+			end loop;
+
+			exception
+				when utl_http.end_of_body then
+					null;
+				when others then
+					raise;
+		end;
+
+		utl_http.end_response(
+			r => github_listen_response
+		);
+
+		return fetched_data;
+
+		exception
+			when utl_http.http_client_error then
 				dbms_output.put_line(UTL_HTTP.GET_DETAILED_SQLERRM);
 				raise;
 			when others then
 				raise;
 
-	end talk;
+	end listen;
 
 end github;
 /

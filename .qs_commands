@@ -2,3 +2,4 @@ setsid git gui
 chromium-browser --new-window http://docs.oracle.com/cd/E11882_01/server.112/e22490/metadata_api.htm#SUTIL015
 chromium-browser http://docs.oracle.com/cd/E11882_01/appdev.112/e40758/d_metada.htm#ARPLS026
 chromium-browser http://developer.github.com/v3/
+vboxmanage startvm "Oracle Developer Days"

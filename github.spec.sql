@@ -95,5 +95,14 @@ as
 		, api_data					in			clob default null
 	);
 
+	/** Get clob contents of url
+	* @author Morten Egan
+	* @param fetch_url The URL to fetch content from
+	*/
+	function listen (
+		fetch_url					in 			varchar2
+	)
+	return clob;
+
 end github;
 /
