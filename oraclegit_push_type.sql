@@ -68,17 +68,30 @@ create or replace procedure get_oraclegit_ddl_push (
 
 as
 
-	/* Push message contents:
-	* Object owner
-	* Object type
-	* Object name
-	*/
+	repos_name			varchar2(4000);
+	repos_owner			varchar2(4000);
+	github_account		varchar2(4000);
+	github_password		varchar2(4000);
 
 begin
 
 	-- So here we should lookup, which github repository to push this to.
-	-- Find session settings, set them and do push
-	null;
+	-- Find session settings, set them and do push.
+	-- Also we only push allowed objects
+	if oraclegit.is_tracked(push_msg.object_owner) then
+		-- We track this schema, so we should push if object type is correct
+		if push_msg.object_type in ('PROCEDURE', 'FUNCTION', 'PACKAGE', 'PACKAGE_SPEC', 'PACKAGE_BODY') then
+			-- Setup env for this repository
+			github_oracle_session.set_github(
+				ssl_wallet_location			=>	oraclegit.get_oraclegit_env('github_wallet_location')
+				, ssl_wallet_password		=>	oraclegit.get_oraclegit_env('github_wallet_passwd')
+				, github_logon_user			=>	github_account
+				, github_logon_pass			=>	github_password
+				, github_repository			=>	repos_name
+				, github_repository_owner	=>	repos_owner
+			);
+		end if;
+	end if;
 
 end get_oraclegit_ddl_push;
 /
