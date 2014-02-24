@@ -18,22 +18,3 @@ grant create public synonym to github;
 grant execute on utl_http to github;
 grant execute on dbms_metadata to github;
 grant select on dba_objects to github;
-
--- Create network ACL for github.com access
-@@network_acl.sql
-
-connect github/github
-
--- Install packages
-@@github_utl_load.sql
-
--- Install tables
-@tables.sql
-
-@@oraclegit.spec.sql
-@@oraclegit.body.sql
-
-grant execute on oraclegit to public;
-create public synonym oraclegit for github.oraclegit;
-
-@@oraclegit_push_type.sql
