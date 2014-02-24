@@ -1,3 +1,5 @@
+set scan off;
+
 -- Specs
 @@json.spec.sql
 @@github.spec.sql
@@ -14,7 +16,9 @@
 @@github_issues_labels.spec.sql
 @@github_issues.spec.sql
 @@github_repos_collaborators.spec.sql
-@@github_repos_commits.spec.sql   
+@@github_repos_commits.spec.sql
+@@github_oracle_session.spec.sql
+@@github_oracle_content.spec.sql
 -- Bodies
 @@json.body.sql
 @@github.body.sql
@@ -31,4 +35,6 @@
 @@github_repos.body.sql                
 @@github_repos_collaborators.body.sql  
 @@github_repos_commits.body.sql            
-@@github_repos_content.body.sql        
+@@github_repos_content.body.sql
+@@github_oracle_session.body.sql
+@@github_oracle_content.body.sql   

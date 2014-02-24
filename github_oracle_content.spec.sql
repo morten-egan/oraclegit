@@ -35,6 +35,7 @@ as
 		object_name	 			in 			varchar2
 		, object_type			in 			varchar2
 		, object_owner 			in 			varchar2 default user
+		, object_content		in 			clob default null
 	);
 
 	/** Push all plsql code from the current schema

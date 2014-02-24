@@ -32,20 +32,25 @@ as
 		object_name	 			in 			varchar2
 		, object_type			in 			varchar2
 		, object_owner 			in 			varchar2 default user
+		, object_content		in 			clob default null
 	)
 
 	as
 
 		github_path				varchar2(4000) := get_object_path(object_name, object_type, object_owner);
 		check_push_response		json.jsonstructobj;
-		object_content			clob;
+		object_content_r		clob;
 		github_content_val		clob;
 		github_content_sha		varchar2(4000);
 
 	begin
 
-		object_content := github.encode64_clob(dbms_metadata.get_ddl(upper(object_type), upper(object_name), object_owner));
-
+		if object_content is null then
+			object_content_r := github.encode64_clob(dbms_metadata.get_ddl(upper(object_type), upper(object_name), object_owner));
+		else
+			object_content_r := github.encode64_clob(object_content);
+		end if;
+		
 		check_push_response := github_repos_content.get_content(
 				git_account => github_oracle_session.gh_r_o
 				, repos_name => github_oracle_session.gh_r
@@ -59,14 +64,14 @@ as
 			github_content_val := json.getattrvalue(check_push_response, 'content');
 			-- Cleanup content for comparison
 			github_content_val := replace(replace(github_content_val, chr(10)), chr(13));
-			if object_content != github_content_val then
+			if object_content_r != github_content_val then
 				-- New content do the update
 				github_repos_content.update_file (
 					git_account => github_oracle_session.gh_r_o
 					, repos_name => github_oracle_session.gh_r
 					, path => github_path
 					, message => github_oracle_session.gh_p_m
-					, content => object_content
+					, content => object_content_r
 					, sha => github_content_sha
 				);
 			end if;
@@ -77,7 +82,7 @@ as
 				, repos_name => github_oracle_session.gh_r
 				, path => github_path
 				, message => github_oracle_session.gh_p_m
-				, content => object_content
+				, content => object_content_r
 			);
 		end if;
 
@@ -106,7 +111,7 @@ as
 				push_object(obj.object_name, 'PACKAGE_SPEC');
 				push_object(obj.object_name, 'PACKAGE_BODY');
 			else
-				push_object(obj.object_name, 'PACKAGE_BODY');
+				push_object(obj.object_name, obj.object_type);
 			end if;
 		end loop;
 

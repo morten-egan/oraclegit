@@ -15,11 +15,9 @@ begin
 	);
 
 	dbms_output.put_line(ddl_data); */
-	for i in 1..ora_sql_txt(ddl_text_var) loop        --This portion of code calculates the full DDL text, because ddl_text_var
-   full_ddl_text:=full_ddl_text||ddl_text_var(i);  --is just a table of 64 byte pieces of DDL, we need to subtract them
- end loop; 
+	
 
-	dbms_output.put_line(full_ddl_text);
+	dbms_output.put_line(ora_sysevent);
 
 end oraclegit_capture;
 /

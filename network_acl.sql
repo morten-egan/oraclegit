@@ -1,8 +1,13 @@
 BEGIN
+	DBMS_NETWORK_ACL_ADMIN.drop_acl ( 
+    acl         => 'github_acl.xml');
+
+  COMMIT;
+
   DBMS_NETWORK_ACL_ADMIN.create_acl (
     acl          => 'github_acl.xml', 
     description  => 'ACL definition for Github.com access',
-    principal    => 'ORACLEGIT',
+    principal    => 'GITHUB',
     is_grant     => TRUE, 
     privilege    => 'connect',
     start_date   => SYSTIMESTAMP,
@@ -12,7 +17,7 @@ BEGIN
 
 dbms_network_acl_admin.add_privilege (
 			acl	 => 'github_acl.xml',
-			principal	 => 'ORACLEGIT',
+			principal	 => 'GITHUB',
 			is_grant	 => true,
 			privilege	 => 'resolve'
 		);

@@ -43,5 +43,9 @@ create table repository_objects (
 	, object_name			varchar2(200)		constraint object_name_nn not null
 	, object_type			varchar2(200)		constraint object_type_nn not null
 	, object_path 			varchar2(4000)		constraint object_path_nn not null
-	, object_sha 			varchar2(4000)		constraint object_sha_nn not null
+);
+
+create table repository_code_pushes (
+	code_push_id			number				constraint code_push_pk primary key
+	, code_data				clob
 );

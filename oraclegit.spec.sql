@@ -38,7 +38,7 @@ as
 		git_schema					varchar2
 		, obj_type					varchar2
 		, obj_name					varchar2
-		, obj_data					clob
+		, obj_content				clob
 	);
 
 	/** Check if a schema is git tracked
@@ -48,6 +48,19 @@ as
 	*/
 	function is_tracked (
 		git_schema					varchar2
+	)
+	return boolean;
+
+	/** Check if object is tracked
+	* @author Morten Egan
+	* @param obj_owner Owner of the object
+	* @param obj_type Type of the object
+	* @param obj_name Name of the object
+	*/
+	function is_object_tracked (
+		obj_owner 					varchar2
+		, obj_type 					varchar2
+		, obj_name 					varchar2
 	)
 	return boolean;
 
@@ -116,8 +129,36 @@ as
 		, obj_name					varchar2
 		, obj_type					varchar2
 		, obj_path					varchar2
-		, obj_sha					varchar2
 	);
+
+	/** Get repository session setup
+	* @author Morten Egan
+	* @param repos_name The repository to get session setup information about
+	*/
+	procedure repos_session_setup (
+		obj_owner			in 		varchar2
+		, obj_type 			in 		varchar2
+		, obj_name 			in 		varchar2
+	);
+
+	/** Get the repository for a schema
+	* @author Morten Egan
+	* @param oracle_schema_name 
+	*/
+	function get_schema_respository (
+		oracle_schema_name	in 		varchar2
+	)
+	return varchar2;
+
+	/** Push extract code into github schema for processing
+	* @author Morten Egan
+	* @param push_code The code to push
+	* @return The ID of the push
+	*/
+	function push_code_extract (
+		push_code 			in 		clob
+	)
+	return number;
 
 end oraclegit;
 /

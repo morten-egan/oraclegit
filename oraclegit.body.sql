@@ -24,43 +24,24 @@ as
 			order by
 				object_name;
 
-		ddl_clob				clob;
 		git_object_path			varchar2(4000);
-		content_json			json.jsonstructobj;
-		commited_sha			varchar2(4000);
 
 	begin
 
 		for codes in get_code_objects loop
-			git_object_path := lower(git_schema) || '/' || lower(codes.object_type) || '/' || lower(codes.object_name) || '.oraclegit.sql';
-
-			ddl_clob := dbms_metadata.get_ddl(
-				object_type => codes.object_type
-				, name => codes.object_name
-				, schema => git_schema
-			);
-
-			-- ddl_clob := oraclegit_ddl.get_ddl(git_schema, codes.object_type, codes.object_name);
-	
-			-- Encode data in base64 for github push
-			ddl_clob := github.encode64_clob(ddl_clob);
-
-			-- Push to github
-			github_repos_content.create_file(
-				git_account => rep_account
-				, repos_name => rep_name
-				, path => git_object_path
-				, message => 'Commit of: ' || codes.object_type || '.' || codes.object_name || '.'
-				, content => ddl_clob
-			);
-
-			-- Save the SHA for the commit for next update
-			content_json := json.String2JSON(json.getAttrValue(github.github_api_parsed_result, 'content'));
-			commited_sha := json.getattrvalue(content_json, 'sha');
-
-			-- Add the object for tracking
-			add_object_tracking(rep_name, git_schema, codes.object_name, codes.object_type, git_object_path, commited_sha);
+			dbms_scheduler.create_job (
+    			job_name        => git_schema || '.GITPUSH_' || substr(codes.object_name, 1, 20),
+    			job_type        => 'PLSQL_BLOCK',
+    			job_action      => 'BEGIN github.github_get_code(''CREATE'', '''|| git_schema ||''', '''|| codes.object_type ||''', '''|| codes.object_name ||'''); END;',
+    			start_date      => SYSTIMESTAMP,
+    			enabled         => TRUE,
+    			comments        => 'Push code.'
+    		);
+    		git_object_path := github_oracle_content.get_object_path(codes.object_name, codes.object_type, git_schema);
+			add_object_tracking(rep_name, git_schema, codes.object_name, codes.object_type, git_object_path);
 		end loop;
+
+		commit;
 
 	end init_schema;
 
@@ -78,7 +59,7 @@ as
 		select count(*)
 		into schema_count
 		from repository_schema
-		where schema_name = upper(git_schema);
+		where upper(schema_name) = upper(git_schema);
 
 		if schema_count > 0 then
 			return true;
@@ -176,11 +157,31 @@ as
 	begin
 
 		insert into repository_schema (schema_name, repository)
-		values (track_schema, track_repository);
+		values (upper(track_schema), track_repository);
 
 		commit;
 
 	end add_tracking;
+
+	function get_schema_respository (
+		oracle_schema_name 		in 		varchar2
+	)
+	return varchar2
+
+	as
+
+		repos_return				varchar2(4000);
+
+	begin
+
+		select repository
+		into repos_return
+		from repository_schema
+		where upper(schema_name) = upper(oracle_schema_name);
+
+		return repos_return;
+
+	end get_schema_respository;
 
 	procedure add_github_repository (
 		repos_name 					varchar2
@@ -206,17 +207,14 @@ as
 		, obj_name					varchar2
 		, obj_type					varchar2
 		, obj_path					varchar2
-		, obj_sha					varchar2
 	)
 
 	as
 
-		pragma autonomous_transaction;
-
 	begin
 
-		insert into repository_objects (repository_name, schema_name, object_name, object_type, object_path, object_sha)
-		values (repos_name, oracle_schema_name, obj_name, obj_type, obj_path, obj_sha);
+		insert into repository_objects (repository_name, schema_name, object_name, object_type, object_path)
+		values (repos_name, upper(oracle_schema_name), obj_name, obj_type, obj_path);
 
 		commit;
 
@@ -235,6 +233,7 @@ as
 		git_enable_exc			exception;
 		schema_count			number;
 		pragma exception_init(git_enable_exc, -20001);
+		git_passwd 				varchar2(4000);
 
 		use_org					boolean := false;
 		default_org				varchar2(200) := null;
@@ -278,6 +277,20 @@ as
 		end if;
 
 		-- If we get to here, we can register schema and create repository if needed.
+		-- First setup session
+		select github_password
+		into git_passwd
+		from github_account
+		where github_username = git_account;
+
+		github_oracle_session.set_github(
+			ssl_wallet_location			=>	oraclegit.get_oraclegit_env('github_wallet_location')
+			, ssl_wallet_password		=>	oraclegit.get_oraclegit_env('github_wallet_passwd')
+			, github_logon_user			=>	git_account
+			, github_logon_pass			=>	git_passwd
+			, github_repository			=>	new_rep_name
+			, github_repository_owner	=>	git_account
+		);
 		-- First create if we have to
 		if create_rep then
 			if get_oraclegit_env('privacy_level') = 'PUBLIC' then 
@@ -307,6 +320,18 @@ as
 		-- Add the schema to tracking
 		add_tracking(git_schema, new_rep_name);
 
+		-- execute immediate 'grant execute on github_push_type to ' || git_schema;
+
+		-- Grant access to the push queue
+		dbms_aqadm.grant_queue_privilege (
+   			privilege     =>     'ALL',
+   			queue_name    =>     'github.github_push_queue',
+   			grantee       =>     git_schema,
+   			grant_option  =>     false
+   		);
+
+   		commit;
+
 		-- Init objects in schema to repository
 		init_schema(git_schema, new_rep_name, git_account);
 
@@ -317,137 +342,99 @@ as
 
 	end git_enable_schema;
 
-	procedure github_upd_obj_sha (
-		repos_name 					varchar2
-		, oracle_schema_name		varchar2
-		, obj_path 					varchar2
-		, new_sha					varchar2
+	procedure repos_session_setup (
+		obj_owner			in 		varchar2
+		, obj_type 			in 		varchar2
+		, obj_name 			in 		varchar2
 	)
 
 	as
 
-		pragma autonomous_transaction;
+		repos_name				varchar2(4000);
+		github_acc 				varchar2(4000);
+		github_acc_pass			varchar2(4000);
 
 	begin
 
-		update repository_objects
-		set object_sha = new_sha
-		where repository_name = repos_name
-		and schema_name = oracle_schema_name
-		and object_path = obj_path;
+		select ghr.repository_name, ghr.repository_owner, ga.github_password
+		into repos_name, github_acc, github_acc_pass
+		from github_repository ghr, repository_schema rs, github_account ga
+		where rs.repository = (
+				select ro.repository_name 
+				from repository_objects ro 
+				where upper(ro.schema_name) = upper(obj_owner)
+				and upper(ro.object_type) = upper(obj_type)
+				and upper(ro.object_name) = upper(obj_name)
+			)
+		and rs.repository = ghr.repository_name
+		and ghr.repository_owner = ga.github_username;
 
-		commit;
+		github_oracle_session.set_github(
+			ssl_wallet_location			=>	oraclegit.get_oraclegit_env('github_wallet_location')
+			, ssl_wallet_password		=>	oraclegit.get_oraclegit_env('github_wallet_passwd')
+			, github_logon_user			=>	github_acc
+			, github_logon_pass			=>	github_acc_pass
+			, github_repository			=>	repos_name
+			, github_repository_owner	=>	github_acc
+		);
 
-	end github_upd_obj_sha;
+	end repos_session_setup;
 
-	function github_object_path_exists (
-		repos_name 					varchar2
-		, oracle_schema_name		varchar2
-		, obj_path 					varchar2
+	function is_object_tracked (
+		obj_owner					varchar2
+		, obj_type 					varchar2
+		, obj_name 					varchar2
 	)
-	return varchar2
+	return boolean
 
 	as
 
-		obj_sha 					varchar2(4000) := null;
+		track_count				number := 0;
 
 	begin
 
-		select
-			object_sha
-		into
-			obj_sha
-		from
-			repository_objects
-		where
-			repository_name = repos_name
-		and
-			schema_name = oracle_schema_name
-		and
-			object_path = obj_path;
+		select count(*)
+		into track_count
+		from repository_objects
+		where upper(schema_name) = upper(obj_owner)
+		and upper(object_name) = upper(obj_name)
+		and upper(object_type) = upper(obj_type);
 
-		return obj_sha;
+		if track_count > 0 then
+			return true;
+		else 	
+			return false;
+		end if;
 
-		exception
-			when no_data_found then
-				return null;
-
-	end github_object_path_exists;
+	end is_object_tracked;
 
 	procedure git_write (
 		git_schema					varchar2
 		, obj_type					varchar2
 		, obj_name					varchar2
-		, obj_data					clob
+		, obj_content				clob
 	)
 
 	as
 
-		g_acc					varchar2(4000);
-		g_rep					varchar2(4000);
-
-		ddl_clob				clob;
-        git_object_path			varchar2(4000) := lower(git_schema) || '/' || lower(obj_type) || '/' || lower(obj_name) || '.oraclegit.sql';
-
-        cursor get_acc_rep is
-        	select ghr.repository_name, ghr.repository_owner
-			from github_repository ghr, repository_schema rs
-			where rs.schema_name = git_schema
-			and rs.repository = ghr.repository_name;
-
-		content_json			json.jsonstructobj;
-		commited_sha			varchar2(4000);
-		existing_sha			varchar2(4000);
+        git_object_path			varchar2(4000) := github_oracle_content.get_object_path(obj_name, obj_type, git_schema);
+        repos_name 				varchar2(4000);
 
 	begin
 
-		-- Encode data in base64 for github push
-		ddl_clob := github.encode64_clob(obj_data);
-
 		if oraclegit.get_oraclegit_env('multiple_schema_repos') = 'N' then
-			-- Only one repository for one schema
-			open get_acc_rep;
-			fetch get_acc_rep into g_rep, g_acc;
-			close get_acc_rep;
-
-			existing_sha := github_object_path_exists(g_rep, git_schema, git_object_path);
-			-- Push the content to github
-			if existing_sha is null then
-				github_repos_content.create_file(
-					git_account => g_acc
-					, repos_name => g_rep
-					, path => git_object_path
-					, message => 'Commit of: ' || obj_type || '.' || obj_name || '.'
-					, content => ddl_clob
-				);
-				-- Save the SHA for the commit for next update
-				content_json := json.String2JSON(json.getAttrValue(github.github_api_parsed_result, 'content'));
-				commited_sha := json.getattrvalue(content_json, 'sha');
-				-- Add the object for tracking
-				add_object_tracking(g_rep, git_schema, obj_name, obj_type, git_object_path, commited_sha);
-			else
-				github_repos_content.update_file(
-					git_account => g_acc
-					, repos_name => g_rep
-					, path => git_object_path
-					, message => 'Commit of: ' || obj_type || '.' || obj_name || '.'
-					, content => ddl_clob
-					, sha => existing_sha
-				);
-				content_json := json.String2JSON(json.getAttrValue(github.github_api_parsed_result, 'content'));
-				commited_sha := json.getattrvalue(content_json, 'sha');
-				github_upd_obj_sha(g_rep, git_schema, git_object_path, commited_sha);
+			if is_object_tracked(git_schema, obj_type, obj_name) = false then
+				select repository
+				into repos_name
+				from repository_schema
+				where upper(schema_name) = upper(git_schema);
+				add_object_tracking(repos_name, git_schema, obj_name, obj_type, git_object_path);
 			end if;
+			repos_session_setup(git_schema, obj_type, obj_name);
+			github_oracle_content.push_object(obj_name, obj_type, git_schema, obj_content);
 		else
-			for x in get_acc_rep loop
-				github_repos_content.create_file(
-					git_account => x.repository_owner
-					, repos_name => x.repository_name
-					, path => git_object_path
-					, message => 'Commit of: ' || obj_type || '.' || obj_name || '.'
-					, content => ddl_clob
-				);
-			end loop;
+			-- Not support at the moment
+			null;
 		end if;
 
 	end git_write;
@@ -470,6 +457,27 @@ as
 		commit;
 
 	end add_github_account;
+
+	function push_code_extract (
+		push_code 			in 		clob
+	)
+	return number
+
+	as
+
+		cid					number;
+
+	begin
+
+		insert into repository_code_pushes (code_push_id, code_data)
+		values (code_push_seq.nextval, push_code)
+		returning code_push_id into cid;
+
+		commit;
+
+		return cid;
+
+	end push_code_extract;
 
 end oraclegit;
 /
