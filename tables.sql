@@ -1,4 +1,8 @@
 /* ============================= */
+create sequence code_push_seq
+increment by 1
+start with 10;
+
 create table oraclegit_env (
 	environment_name		varchar2(100)		constraint oraclegit_env_pk primary key
 	, environment_value		varchar2(4000)
