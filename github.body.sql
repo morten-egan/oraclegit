@@ -108,67 +108,53 @@ as
 	end decode64_clob;
 
 	function github_committer_hash
-	return json.jsonstructobj
+	return json
 
 	as
 
-		committer 					json.jsonstructobj;
+		committer 					json;
 
 	begin
 
-		json.newjsonobj(committer);
-		committer := json.addattr(committer, 'name', user);
-		committer := json.addattr(committer, 'email', 'user.' || user || '@' || sys_context('USERENV', 'DB_NAME') || '.db');
-		json.closejsonobj(committer);
+		committer := json();
+		committer.put('name', user);
+		committer.put('email', 'user.' || user || '@' || sys_context('USERENV', 'DB_NAME') || '.db');
 
 		return committer;
 
 	end github_committer_hash;
 
-	procedure parse_github_raw_response
+	procedure init_talk (
+		endpoint 					in 			varchar2
+		, endpoint_method			in 			varchar2
+	)
 
 	as
 
-		arr_count					number := 0;
-		arr_fixed_json				json.jsonstructobj;
-		final_json					json.jsonstructobj;
+	begin
+
+		github_call_request.call_endpoint := endpoint;
+		github_call_request.call_method := endpoint_method;
+		github_call_request.call_json := json();
+
+	end init_talk;
+
+	procedure parse_result_to_json
+
+	as
 
 	begin
 
-		-- Because of some bugs in the json pacakge, we need first to add to
-		-- all occurrences of booleans, an extra json key value, or else the parse
-		-- will fail.
-		github_api_raw_result := replace(github_api_raw_result, '"site_admin":true', '"site_admin":true,"t1":"t1"');
-		github_api_raw_result := replace(github_api_raw_result, '"site_admin":false', '"site_admin":false,"t1":"t1"');
-		github_api_raw_result := replace(github_api_raw_result, '"pull":true', '"pull":true,"t1":"t1"');
-		github_api_raw_result := replace(github_api_raw_result, '"pull":false', '"pull":false,"t1":"t1"');
-		github_api_raw_result := replace(github_api_raw_result, '"due_on":null', '"due_on":null,"t1":"t1"');
-
-		arr_fixed_json := json.string2json(github_api_raw_result);
-		-- Now for the parse itself, we need to parse differently if the response is an array
-		-- of json objects or if it is a single json object.
 		if substr(github_api_raw_result, 1, 1) = '[' then
-			-- This is an array of json objects parse different then normal.
-			dbms_output.put_line('Fixing array json');
-			json.getJsonObjFromJsonObjArr(arr_fixed_json, arr_count, final_json);
-			github_response_result.result_type := 'ARRAY_JSON';
-			github_response_result.result_count := arr_count;
-			github_response_result.result := final_json;
+			github_response_result.result_list := json_list(github_api_raw_result);
 		else
-			github_response_result.result_type := 'SINGLE_JSON';
-			github_response_result.result := arr_fixed_json;
+			github_response_result.result := json(github_api_raw_result);
 		end if;
-		
-		-- For backwards compatibility
-		github_api_parsed_result := arr_fixed_json;
 
-	end parse_github_raw_response;
+	end parse_result_to_json;
 
 	procedure talk (
 		github_account				in			varchar2
-		, api_endpoint				in			varchar2
-		, endpoint_method			in			varchar2
-		, api_data					in			clob default null
 	)
 
 	as
@@ -208,11 +194,11 @@ as
 			max_redirects => 1
 		);
 
-		-- dbms_output.put_line('Calling: ' || def_github_api_location || api_endpoint);
+		-- dbms_output.put_line('Calling: ' || def_github_api_location || github_call_request.call_endpoint);
 		-- Start the request
 		github_request := utl_http.begin_request(
-			url => def_github_api_location || api_endpoint
-			, method => endpoint_method
+			url => def_github_api_location || github_call_request.call_endpoint
+			, method => github_call_request.call_method
 		);
 
 		-- Set authentication and headers
@@ -230,7 +216,7 @@ as
 		);
 
 		-- Method specific headers
-		if (api_data is not null) then
+		if (length(github_call_request.call_json.to_char) > 4) then
 			utl_http.set_header(
 				r => github_request
 				, name => 'Content-Type'
@@ -239,12 +225,12 @@ as
 			utl_http.set_header(
 				r => github_request
 				, name => 'Content-Length'
-				, value => length(api_data)
+				, value => length(github_call_request.call_json.to_char)
 			);
 			-- Write the content
 			utl_http.write_text (
 				r => github_request
-				, data => api_data
+				, data => github_call_request.call_json.to_char
 			);
 		end if;
 
@@ -290,7 +276,7 @@ as
 
 		-- Parse output to github_utl readable format 
 		-- github_api_parsed_result := json.string2json(github_api_raw_result);
-		parse_github_raw_response;
+		parse_result_to_json;
 
 		exception
 			when utl_http.http_client_error then

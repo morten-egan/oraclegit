@@ -9,15 +9,22 @@ as
 	*/
 
 	-- Global variables and types
+	type call_request is record (
+		call_endpoint				varchar2(4000)
+		, call_method				varchar2(100)
+		, call_json					json
+	);
+	github_call_request				call_request;
+
 	type call_result is record (
 		result_type					varchar2(200)
 		, result_count				number
-		, result 					json.jsonstructobj
+		, result 					json
+		, result_list				json_list
 	);
 	github_response_result			call_result;
 
 	github_api_raw_result			clob;
-	github_api_parsed_result		json.jsonstructobj;
 	github_call_status_code			pls_integer;
 	github_call_status_reason		varchar2(256);
 
@@ -78,7 +85,17 @@ as
 	* @return A pljson stucture of github committer hash
 	*/
 	function github_committer_hash
-	return json.jsonstructobj;
+	return json;
+
+	/** Init the call structure
+	* @author Morten Egan
+	* @param endpoint The API endpoint
+	* @param endpoint_method The method of the request
+	*/
+	procedure init_talk (
+		endpoint 					in 			varchar2
+		, endpoint_method			in 			varchar2
+	);
 
 	/** Send request to github api
 	* @author Morten Egan
@@ -90,9 +107,6 @@ as
 	*/
 	procedure talk (
 		github_account				in			varchar2
-		, api_endpoint				in			varchar2
-		, endpoint_method			in			varchar2
-		, api_data					in			clob default null
 	);
 
 	/** Get clob contents of url
