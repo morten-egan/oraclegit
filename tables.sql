@@ -34,6 +34,7 @@ create table github_repository (
 	, org_name				varchar2(200)		constraint gh_rep_org_ref references github_organization(org_name)
 	, repository_owner		varchar2(200)		constraint gh_rep_owner_ref references github_account(github_username)
 	, repository_branch		varchar2(200)		default 'DEV'
+	, issues_enabled		varchar2(1)			default 'N'
 );
 
 create table repository_schema (

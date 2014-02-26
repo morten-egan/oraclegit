@@ -198,3 +198,26 @@ begin
 
 end github_capture_ddl;
 /
+
+create or replace trigger github_capture_issues
+after 
+	servererror
+on
+	database
+
+declare
+
+	failed_sql			varchar2(4000);
+
+begin
+	
+	if ora_login_user != 'SYS' then
+		if oraclegit.is_issue_enabled(ora_login_user) then
+			oraclegit.github_issue(ora_login_user, ora_server_error(1), 'Error: ' || ora_server_error(1) || ' occured at: ' || to_char(sysdate, 'HH24:MI:SS') || ' on ' || to_char(sysdate,'DD-Mon-YYYY') || '.
+				Full error stack: ' || dbms_utility.format_error_stack
+			);
+		end if;
+	end if;
+
+end github_capture_issues;
+/

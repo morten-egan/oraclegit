@@ -106,12 +106,14 @@ as
 	* @param repos_owner The owner of the repository
 	* @param repos_organization Organization of repository
 	* @param repos_branch Branch to use in the repository, if different than default
+	* @param repos_issues Whether or not issues are enabled for this repository
 	*/
 	procedure add_github_repository (
 		repos_name 					varchar2
 		, repos_owner 				varchar2
 		, repos_organization		varchar2 default null
 		, repos_branch				varchar2 default null
+		, repos_issues				varchar2 default 'N'
 	);
 
 	/** Add object for github tracking
@@ -159,6 +161,36 @@ as
 		push_code 			in 		clob
 	)
 	return number;
+
+	/** Enable issues for a schema
+	* @author Morten Egan
+	* @param oracle_schema_name The name of the schema to enable issues for
+	*/
+	procedure issues_enable_schema (
+		oracle_schema_name	in 		varchar2
+	);
+
+	/** Check if a schema is issues enabled
+	* @author Morten Egan
+	* @param oracle_schema_name The name of the schema to check
+	* @return True if enabled, False if not
+	*/
+	function is_issue_enabled (
+		oracle_schema_name	in 		varchar2
+	)
+	return boolean;
+
+	/** Create an issue from a schema error
+	* @author Morten Egan
+	* @param issue_schema The schema the issue is in
+	* @param issue_title The title of the issue
+	* @param issue_body The body of the issue
+	*/
+	procedure github_issue (
+		issues_schema 		in 		varchar2
+		, issue_title		in 		varchar2
+		, issue_body		in 		varchar2
+	);
 
 end oraclegit;
 /

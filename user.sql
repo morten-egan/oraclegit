@@ -18,3 +18,6 @@ grant create public synonym to github;
 grant execute on utl_http to github;
 grant execute on dbms_metadata to github;
 grant select on dba_objects to github;
+grant select on gv_$sql to github;
+grant select on gv_$sql_cursor to github;
+grant select on gv_$session to github;

@@ -188,14 +188,15 @@ as
 		, repos_owner 				varchar2
 		, repos_organization		varchar2 default null
 		, repos_branch				varchar2 default null
+		, repos_issues				varchar2 default 'N'
 	)
 
 	as
 
 	begin
 
-		insert into github_repository (repository_name, org_name, repository_owner, repository_branch)
-		values (repos_name, repos_organization, repos_owner, repos_branch);
+		insert into github_repository (repository_name, org_name, repository_owner, repository_branch, issues_enabled)
+		values (repos_name, repos_organization, repos_owner, repos_branch, repos_issues);
 
 		commit;
 
@@ -356,18 +357,32 @@ as
 
 	begin
 
-		select ghr.repository_name, ghr.repository_owner, ga.github_password
-		into repos_name, github_acc, github_acc_pass
-		from github_repository ghr, repository_schema rs, github_account ga
-		where rs.repository = (
-				select ro.repository_name 
-				from repository_objects ro 
-				where upper(ro.schema_name) = upper(obj_owner)
-				and upper(ro.object_type) = upper(obj_type)
-				and upper(ro.object_name) = upper(obj_name)
-			)
-		and rs.repository = ghr.repository_name
-		and ghr.repository_owner = ga.github_username;
+		if obj_type is not null and obj_name is not null then
+			select ghr.repository_name, ghr.repository_owner, ga.github_password
+			into repos_name, github_acc, github_acc_pass
+			from github_repository ghr, repository_schema rs, github_account ga
+			where rs.repository = (
+					select ro.repository_name 
+					from repository_objects ro 
+					where upper(ro.schema_name) = upper(obj_owner)
+					and upper(ro.object_type) = upper(obj_type)
+					and upper(ro.object_name) = upper(obj_name)
+				)
+			and rs.repository = ghr.repository_name
+			and ghr.repository_owner = ga.github_username;
+		else
+			select ghr.repository_name, ghr.repository_owner, ga.github_password
+			into repos_name, github_acc, github_acc_pass
+			from github_repository ghr, repository_schema rs, github_account ga
+			where rs.repository = (
+					select ro.repository_name 
+					from repository_objects ro 
+					where upper(ro.schema_name) = upper(obj_owner)
+					and rownum = 1
+				)
+			and rs.repository = ghr.repository_name
+			and ghr.repository_owner = ga.github_username;
+		end if;
 
 		github_oracle_session.set_github(
 			ssl_wallet_location			=>	oraclegit.get_oraclegit_env('github_wallet_location')
@@ -478,6 +493,77 @@ as
 		return cid;
 
 	end push_code_extract;
+
+	procedure issues_enable_schema (
+		oracle_schema_name	in 		varchar2
+	)
+
+	as
+
+		repos_exists				varchar2(4000) := null;
+
+	begin
+
+		select repository
+		into repos_exists
+		from repository_schema
+		where upper(schema_name) = upper(oracle_schema_name);
+
+		if repos_exists is not null then
+			update github_repository
+			set issues_enabled = 'Y'
+			where repository_name = repos_exists;
+
+			commit;
+		end if;
+
+	end issues_enable_schema;
+
+	function is_issue_enabled (
+		oracle_schema_name	in 		varchar2
+	)
+	return boolean
+
+	as
+
+		is_enabled 					varchar2(1) := 'N';
+
+	begin
+
+		select gr.issues_enabled
+		into is_enabled
+		from github_repository gr, repository_schema rs
+		where upper(rs.schema_name) = upper(oracle_schema_name)
+		and rs.repository = gr.repository_name;
+
+		if is_enabled = 'Y' then
+			return true;
+		else
+			return false;
+		end if;
+
+	end is_issue_enabled;
+
+	procedure github_issue (
+		issues_schema 		in 		varchar2
+		, issue_title		in 		varchar2
+		, issue_body		in 		varchar2
+	)
+
+	as
+
+	begin
+
+		repos_session_setup(issues_schema, null, null);
+		github_issues.create_issue(
+			git_account => github_oracle_session.gh_r_o
+			, repos_name => github_oracle_session.gh_r
+			, title => issue_title
+			, body => issue_body
+			, assignee => github_oracle_session.gh_r_o
+		);
+
+	end github_issue;
 
 end oraclegit;
 /
