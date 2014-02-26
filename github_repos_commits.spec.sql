@@ -28,7 +28,7 @@ as
 		, since						varchar2 default null
 		, until						varchar2 default null
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Get a single commit
 	* @author Morten Egan
@@ -41,7 +41,7 @@ as
 		, repos_name				varchar2
 		, sha 						varchar2
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Compare two commits. Note: Both :base and :head can be either branch names in :repo or branch names in other repositories in the same network as :repo. For the latter case, use the format user:branch
 	* @author Morten Egan
@@ -57,7 +57,7 @@ as
 		, base 						varchar2
 		, head 						varchar2
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 end github_repos_commits;
 /

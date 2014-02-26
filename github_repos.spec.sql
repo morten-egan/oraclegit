@@ -49,7 +49,7 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Repository list
 	* @author Morten Egan
@@ -101,7 +101,7 @@ as
 		, repos_name				varchar2
 		, anon 						varchar2 default '1'
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** List languages for the specified repository. The value on the right of a language is the number of bytes of code written in that language.
 	* @author Morten Egan
@@ -125,7 +125,7 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** List tags for the specified repository
 	* @author Morten Egan
@@ -137,7 +137,7 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** List branches for the specified repository
 	* @author Morten Egan
@@ -149,7 +149,7 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Get specific branch in repository
 	* @author Morten Egan
@@ -162,7 +162,7 @@ as
 		, repos_name				varchar2
 		, branch 					varchar2
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Deleting a repository requires admin access. If OAuth is used, the delete_repo scope is required.
 	* @author Morten Egan

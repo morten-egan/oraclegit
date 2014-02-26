@@ -20,42 +20,35 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/user/repos';
-		github_api_endpoint_method	varchar2(100) := 'POST';
-		github_api_json	json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
-		github_api_json := json.addattr(github_api_json, 'name', repos_name);
+		if use_org then
+			github.init_talk('/orgs/' || org_name || '/repos', 'POST');
+		else
+			github.init_talk('/user/repos', 'POST');
+		end if;
+
+		github.github_call_request.call_json.put('name', repos_name);
 		if description is not null then
-			github_api_json := json.addattr(github_api_json, 'description', description);
+			github.github_call_request.call_json.put('description', description);
 		end if;
 		if homepage is not null then
-			github_api_json := json.addattr(github_api_json, 'homepage', homepage);
+			github.github_call_request.call_json.put('homepage', homepage);
 		end if;
-		github_api_json := json.addattr(github_api_json, 'private', private);
-		github_api_json := json.addattr(github_api_json, 'has_issues', has_issues);
-		github_api_json := json.addattr(github_api_json, 'has_wiki', has_wiki);
-		github_api_json := json.addattr(github_api_json, 'has_downloads', has_downloads);
+		github.github_call_request.call_json.put('private', private);
+		github.github_call_request.call_json.put('has_issues', has_issues);
+		github.github_call_request.call_json.put('has_wiki', has_wiki);
+		github.github_call_request.call_json.put('has_downloads', has_downloads);
 		if team_id is not null then
-			github_api_json := json.addattr(github_api_json, 'team_id', team_id);
+			github.github_call_request.call_json.put('team_id', team_id);
 		end if;
-		github_api_json := json.addattr(github_api_json, 'auto_init', auto_init);
+		github.github_call_request.call_json.put('auto_init', auto_init);
 		if gitignore_template is not null then
-			github_api_json := json.addattr(github_api_json, 'gitignore_template', gitignore_template);
-		end if;
-		json.closejsonobj(github_api_json);
-
-		if use_org then
-			github_api_endpoint := '/orgs/' || org_name || '/repos';
+			github.github_call_request.call_json.put('gitignore_template', gitignore_template);
 		end if;
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
 	end repos_create;
@@ -64,22 +57,19 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account ||'/' || repos_name;
-		github_api_endpoint_method	varchar2(100) := 'GET';
-
 	begin
+
+		github.init_talk('/repos/' || git_account ||'/' || repos_name, 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end repos_get;
 
@@ -93,23 +83,16 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/users/' || git_account ||'/repos';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
-		github_api_json := json.addattr(github_api_json, 'type', repos_type);
-		github_api_json := json.addattr(github_api_json, 'sort', repos_sort);
-		github_api_json := json.addattr(github_api_json, 'direction', repos_direction);
-		json.closejsonobj(github_api_json);
+		github.init_talk('/users/' || git_account ||'/repos', 'GET');
+
+		github.github_call_request.call_json.put('type', repos_type);
+		github.github_call_request.call_json.put('sort', repos_sort);
+		github.github_call_request.call_json.put('direction', repos_direction);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
 		return github.github_response_result;
@@ -130,34 +113,27 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account ||'/' || repos_name;
-		github_api_endpoint_method	varchar2(100) := 'PATCH';
-		github_api_json				json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
-		github_api_json := json.addattr(github_api_json, 'name', repos_name);
+		github.init_talk('/repos/' || git_account ||'/' || repos_name, 'PATCH');
+
+		github.github_call_request.call_json.put('name', repos_name);
 		if description is not null then
-			github_api_json := json.addattr(github_api_json, 'description', description);
+			github.github_call_request.call_json.put('description', description);
 		end if;
 		if homepage is not null then
-			github_api_json := json.addattr(github_api_json, 'homepage', homepage);
+			github.github_call_request.call_json.put('homepage', homepage);
 		end if;
-		github_api_json := json.addattr(github_api_json, 'private', private);
-		github_api_json := json.addattr(github_api_json, 'has_issues', has_issues);
-		github_api_json := json.addattr(github_api_json, 'has_wiki', has_wiki);
-		github_api_json := json.addattr(github_api_json, 'has_downloads', has_downloads);
+		github.github_call_request.call_json.put('private', private);
+		github.github_call_request.call_json.put('has_issues', has_issues);
+		github.github_call_request.call_json.put('has_wiki', has_wiki);
+		github.github_call_request.call_json.put('has_downloads', has_downloads);
 		if default_branch is not null then
-			github_api_json := json.addattr(github_api_json, 'default_branch', default_branch);
+			github.github_call_request.call_json.put('default_branch', default_branch);
 		end if;
-		json.closejsonobj(github_api_json);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
 	end repos_edit;
@@ -167,28 +143,21 @@ as
 		, repos_name				varchar2
 		, anon 						varchar2 default '1'
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/contributors';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
-		github_api_json := json.addattr(github_api_json, 'anon', anon);
-		json.closejsonobj(github_api_json);
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/contributors', 'GET');
+
+		github.github_call_request.call_json.put('anon', anon);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end repos_contributors;
 
@@ -200,16 +169,12 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/languages';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/languages', 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
 		return github.github_response_result;
@@ -220,23 +185,19 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/teams';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/teams', 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end repos_teams;
 
@@ -244,23 +205,19 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/tags';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/tags', 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end repos_tags;
 
@@ -268,23 +225,19 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/branches';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/branches', 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end repos_branches;
 
@@ -293,23 +246,19 @@ as
 		, repos_name				varchar2
 		, branch 					varchar2
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/branches/' || branch;
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/branches/' || branch, 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end repos_branch_get;
 
@@ -320,16 +269,12 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name;
-		github_api_endpoint_method	varchar2(100) := 'DELETE';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name, 'DELETE');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
 	end repos_delete;

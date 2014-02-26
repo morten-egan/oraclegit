@@ -139,19 +139,21 @@ as
 
 	end init_talk;
 
-	procedure parse_result_to_json
+	procedure parse_github_result
 
 	as
 
 	begin
 
 		if substr(github_api_raw_result, 1, 1) = '[' then
+			github_response_result.result_type := 'JSON_LIST';
 			github_response_result.result_list := json_list(github_api_raw_result);
 		else
+			github_response_result.result_type := 'JSON';
 			github_response_result.result := json(github_api_raw_result);
 		end if;
 
-	end parse_result_to_json;
+	end parse_github_result;
 
 	procedure talk (
 		github_account				in			varchar2
@@ -276,7 +278,7 @@ as
 
 		-- Parse output to github_utl readable format 
 		-- github_api_parsed_result := json.string2json(github_api_raw_result);
-		parse_result_to_json;
+		parse_github_result;
 
 		exception
 			when utl_http.http_client_error then

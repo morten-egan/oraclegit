@@ -17,7 +17,7 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Check if a user is a collaborator
 	* @author Morten Egan

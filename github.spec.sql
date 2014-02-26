@@ -18,7 +18,6 @@ as
 
 	type call_result is record (
 		result_type					varchar2(200)
-		, result_count				number
 		, result 					json
 		, result_list				json_list
 	);

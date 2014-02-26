@@ -13,26 +13,19 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/contents/' || path;
-		github_api_endpoint_method	varchar2(100) := 'PUT';
-		github_api_json				json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
-		github_api_json := json.addattr(github_api_json, 'message', message);
-		github_api_json := json.addattr(github_api_json, 'committer', github.github_committer_hash);
-		github_api_json := json.addattr(github_api_json, 'content', content);
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/contents/' || path, 'PUT');
+
+		github.github_call_request.call_json.put('message', message);
+		github.github_call_request.call_json.put('committer', github.github_committer_hash);
+		github.github_call_request.call_json.put('content', content);
 		if branch is not null then
-			github_api_json := json.addattr(github_api_json, 'branch', branch);
+			github.github_call_request.call_json.put('branch', branch);
 		end if;
-		json.closejsonobj(github_api_json);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
 	end create_file;
@@ -49,27 +42,20 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/contents/' || path;
-		github_api_endpoint_method	varchar2(100) := 'PUT';
-		github_api_json				json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
-		github_api_json := json.addattr(github_api_json, 'message', message);
-		github_api_json := json.addattr(github_api_json, 'committer', github.github_committer_hash);
-		github_api_json := json.addattr(github_api_json, 'content', content);
-		github_api_json := json.addattr(github_api_json, 'sha', sha);
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/contents/' || path, 'PUT');
+
+		github.github_call_request.call_json.put('message', message);
+		github.github_call_request.call_json.put('committer', github.github_committer_hash);
+		github.github_call_request.call_json.put('content', content);
+		github.github_call_request.call_json.put('sha', sha);
 		if branch is not null then
-			github_api_json := json.addattr(github_api_json, 'branch', branch);
+			github.github_call_request.call_json.put('branch', branch);
 		end if;
-		json.closejsonobj(github_api_json);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
 	end update_file;
@@ -85,26 +71,19 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/contents/' || path;
-		github_api_endpoint_method	varchar2(100) := 'DELETE';
-		github_api_json				json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
-		github_api_json := json.addattr(github_api_json, 'message', message);
-		github_api_json := json.addattr(github_api_json, 'committer', github.github_committer_hash);
-		github_api_json := json.addattr(github_api_json, 'sha', sha);
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/contents/' || path, 'DELETE');
+
+		github.github_call_request.call_json.put('message', message);
+		github.github_call_request.call_json.put('committer', github.github_committer_hash);
+		github.github_call_request.call_json.put('sha', sha);
 		if branch is not null then
-			github_api_json := json.addattr(github_api_json, 'branch', branch);
+			github.github_call_request.call_json.put('branch', branch);
 		end if;
-		json.closejsonobj(github_api_json);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
 	end delete_file;
@@ -115,13 +94,9 @@ as
 		, path						varchar2
 		, ref 						varchar2 default null
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
-
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/contents/' || path;
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
 
 	begin
 
@@ -129,13 +104,13 @@ as
 			null;
 		end if;
 
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/contents/' || path, 'GET');
+
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end get_content;
 
@@ -149,20 +124,16 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/' || archive_format || '/' || ref;
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/' || archive_format || '/' || ref, 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
 		-- Now we have a header with the link to the archive
-		return github.github_response_headers('Location');
+		return github.github_response_result.result.get('Location').to_char;
 
 	end get_archive_link;
 
@@ -171,28 +142,21 @@ as
 		, repos_name				varchar2
 		, ref 						varchar2 default 'master'
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/readme';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
-		github_api_json := json.addattr(github_api_json, 'ref', ref);
-		json.closejsonobj(github_api_json);
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/readme', 'GET');
+
+		github.github_call_request.call_json.put('ref', ref);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end get_readme;
 

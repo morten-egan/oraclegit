@@ -11,42 +11,36 @@ as
 		, since						varchar2 default null
 		, until						varchar2 default null
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/commits';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
 
 	begin
 
-		json.newjsonobj(github_api_json);
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/commits', 'GET');
+
 		if sha is not null then
-			github_api_json := json.addattr(github_api_json, 'sha', sha);
+			github.github_call_request.call_json.put('sha', sha);
 		end if;
 		if path is not null then
-			github_api_json := json.addattr(github_api_json, 'path', path);
+			github.github_call_request.call_json.put('path', path);
 		end if;
 		if author is not null then
-			github_api_json := json.addattr(github_api_json, 'author', author);
+			github.github_call_request.call_json.put('author', author);
 		end if;
 		if since is not null then
-			github_api_json := json.addattr(github_api_json, 'since', since);
+			github.github_call_request.call_json.put('since', since);
 		end if;
 		if until is not null then
-			github_api_json := json.addattr(github_api_json, 'until', until);
+			github.github_call_request.call_json.put('until', until);
 		end if;
-		json.closejsonobj(github_api_json);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end list_repos_commits;
 
@@ -55,23 +49,20 @@ as
 		, repos_name				varchar2
 		, sha 						varchar2
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/commits/' || sha;
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
 
 	begin
 
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/commits/' || sha, 'GET');
+
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end get_commit;
 
@@ -81,29 +72,22 @@ as
 		, base 						varchar2
 		, head 						varchar2
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/compare/' || base || '...' || head;
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
-		github_api_json := json.addattr(github_api_json, 'base', base);
-		github_api_json := json.addattr(github_api_json, 'head', head);
-		json.closejsonobj(github_api_json);
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/compare/' || base || '...' || head, 'GET');
+
+		github.github_call_request.call_json.put('base', base);
+		github.github_call_request.call_json.put('head', head);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end compare_commits;
 

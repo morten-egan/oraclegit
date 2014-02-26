@@ -78,7 +78,7 @@ as
 		, path						varchar2
 		, ref 						varchar2 default null
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** This method will return a 302 to a URL to download a tarball or zipball archive for a repository. 
 	* Please make sure your HTTP framework is configured to follow redirects 
@@ -110,7 +110,7 @@ as
 		, repos_name				varchar2
 		, ref 						varchar2 default 'master'
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 end github_repos_content;
 /
