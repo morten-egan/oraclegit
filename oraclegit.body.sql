@@ -35,7 +35,7 @@ as
     			job_action      => 'BEGIN github.github_get_code(''CREATE'', '''|| git_schema ||''', '''|| codes.object_type ||''', '''|| codes.object_name ||'''); END;',
     			start_date      => SYSTIMESTAMP,
     			enabled         => TRUE,
-    			comments        => 'Push code.'
+    			comments        => 'Init schema, push code.'
     		);
     		git_object_path := github_oracle_content.get_object_path(codes.object_name, codes.object_type, git_schema);
 			add_object_tracking(rep_name, git_schema, codes.object_name, codes.object_type, git_object_path);

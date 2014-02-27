@@ -18,7 +18,7 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Get a single release
 	* @author Morten Egan
@@ -32,7 +32,7 @@ as
 		, repos_name				varchar2
 		, release_id				number
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Create a release. Users with push access to the repository can create a release.
 	* @author Morten Egan

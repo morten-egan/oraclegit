@@ -17,7 +17,7 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Get a single label
 	* @author Morten Egan
@@ -30,7 +30,7 @@ as
 		, repos_name				varchar2
 		, label 					varchar2
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Create a label
 	* @author Morten Egan
@@ -83,7 +83,7 @@ as
 		, repos_name				varchar2
 		, issue_id 					number
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Add labels to an issue
 	* @author Morten Egan
@@ -96,7 +96,7 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 		, issue_id 					number
-		, labels 					json.jsonarray
+		, labels 					json_list
 	);
 
 	/** Remove a label from an issue
@@ -124,7 +124,7 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 		, issue_id 					number
-		, labels 					json.jsonarray
+		, labels 					json_list
 	);
 
 	/** Remove all labels from an issue
@@ -150,7 +150,7 @@ as
 		, repos_name				varchar2
 		, milestone_id				number
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 end github_issues_labels;
 /

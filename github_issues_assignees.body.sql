@@ -6,23 +6,19 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/assignees';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/assignees', 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end list_assignees;
 
@@ -35,16 +31,12 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/assignees/' || assignee;
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/assignees/' || assignee, 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
 		if github.github_call_status_code = 204 then

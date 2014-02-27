@@ -18,7 +18,7 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Check assignee. You may also check to see if a particular user is an assignee for a repository.
 	* @author Morten Egan

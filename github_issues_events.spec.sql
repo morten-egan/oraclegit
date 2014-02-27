@@ -20,7 +20,7 @@ as
 		, repos_name				varchar2
 		, issue_number 				number
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** List events for a repository 
 	* @author Morten Egan
@@ -32,7 +32,7 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Get single event
 	* @author Morten Egan
@@ -46,7 +46,7 @@ as
 		, repos_name				varchar2
 		, event_id					number
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 end github_issues_events;
 /

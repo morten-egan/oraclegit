@@ -39,7 +39,7 @@ as
 		, repos_name				varchar2
 		, issue_number				number
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Get issues for a specific repositories
 	* @author Morten Egan

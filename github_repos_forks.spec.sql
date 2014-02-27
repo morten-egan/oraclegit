@@ -19,7 +19,7 @@ as
 		, repos_name				varchar2
 		, sort						varchar2 default 'newest'
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Create a fork. Create a fork for the authenticated user.
 	* @author Morten Egan

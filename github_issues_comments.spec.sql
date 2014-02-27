@@ -19,7 +19,7 @@ as
 		, repos_name				varchar2
 		, issue_id					number
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** List comments in a repository
 	* @author Morten Egan
@@ -36,7 +36,7 @@ as
 		, direction					varchar2 default 'asc'
 		, since						varchar2 default null
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Get a single comment
 	* @author Morten Egan
@@ -50,7 +50,7 @@ as
 		, repos_name				varchar2
 		, comment_id				number
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Create a comment
 	* @author Morten Egan

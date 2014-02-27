@@ -14,33 +14,26 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/issues';
-		github_api_endpoint_method	varchar2(100) := 'POST';
-		github_api_json				json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
-		github_api_json := json.addattr(github_api_json, 'title', title);
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/issues', 'POST');
+
+		github.github_call_request.call_json.put('title', title);
 		if body is not null then
-			github_api_json := json.addattr(github_api_json, 'body', body);
+			github.github_call_request.call_json.put('body', body);
 		end if;
 		if assignee is not null then
-			github_api_json := json.addattr(github_api_json, 'assignee', assignee);
+			github.github_call_request.call_json.put('assignee', assignee);
 		end if;
 		if milestone is not null then
-			github_api_json := json.addattr(github_api_json, 'milestone', milestone);
+			github.github_call_request.call_json.put('milestone', milestone);
 		end if;
 		if labels is not null then
-			github_api_json := json.addattr(github_api_json, 'labels', labels);
+			github.github_call_request.call_json.put('labels', labels);
 		end if;
-		json.closejsonobj(github_api_json);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
 	end create_issue;
@@ -59,36 +52,29 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/issues/' || issue_number;
-		github_api_endpoint_method	varchar2(100) := 'PATCH';
-		github_api_json				json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
-		github_api_json := json.addattr(github_api_json, 'title', title);
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/issues/' || issue_number, 'PATCH');
+
+		github.github_call_request.call_json.put('title', title);
 		if body is not null then
-			github_api_json := json.addattr(github_api_json, 'body', body);
+			github.github_call_request.call_json.put('body', body);
 		end if;
 		if assignee is not null then
-			github_api_json := json.addattr(github_api_json, 'assignee', assignee);
+			github.github_call_request.call_json.put('assignee', assignee);
 		end if;
 		if state is not null then
-			github_api_json := json.addattr(github_api_json, 'state', state);
+			github.github_call_request.call_json.put('state', state);
 		end if;
 		if milestone is not null then
-			github_api_json := json.addattr(github_api_json, 'milestone', milestone);
+			github.github_call_request.call_json.put('milestone', milestone);
 		end if;
 		if labels is not null then
-			github_api_json := json.addattr(github_api_json, 'labels', labels);
+			github.github_call_request.call_json.put('labels', labels);
 		end if;
-		json.closejsonobj(github_api_json);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
 	end edit_issue;
@@ -98,23 +84,19 @@ as
 		, repos_name				varchar2
 		, issue_number				number
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/issues/' || issue_number;
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/issues/' || issue_number, 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end get_single_issue;
 
@@ -135,47 +117,40 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/issues';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/issues', 'GET');
+
 		if milestone is not null then
-			github_api_json := json.addattr(github_api_json, 'milestone', milestone);
+			github.github_call_request.call_json.put('milestone', milestone);
 		end if;
 		if state is not null then
-			github_api_json := json.addattr(github_api_json, 'state', state);
+			github.github_call_request.call_json.put('state', state);
 		end if;
 		if assignee is not null then
-			github_api_json := json.addattr(github_api_json, 'assignee', assignee);
+			github.github_call_request.call_json.put('assignee', assignee);
 		end if;
 		if creator is not null then
-			github_api_json := json.addattr(github_api_json, 'creator', creator);
+			github.github_call_request.call_json.put('creator', creator);
 		end if;
 		if mentioned is not null then
-			github_api_json := json.addattr(github_api_json, 'mentioned', mentioned);
+			github.github_call_request.call_json.put('mentioned', mentioned);
 		end if;
 		if labels is not null then
-			github_api_json := json.addattr(github_api_json, 'labels', labels);
+			github.github_call_request.call_json.put('labels', labels);
 		end if;
 		if sort is not null then
-			github_api_json := json.addattr(github_api_json, 'sort', sort);
+			github.github_call_request.call_json.put('sort', sort);
 		end if;
 		if direction is not null then
-			github_api_json := json.addattr(github_api_json, 'direction', direction);
+			github.github_call_request.call_json.put('direction', direction);
 		end if;
 		if since is not null then
-			github_api_json := json.addattr(github_api_json, 'since', since);
+			github.github_call_request.call_json.put('since', since);
 		end if;
-		json.closejsonobj(github_api_json);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
 		return github.github_response_result;

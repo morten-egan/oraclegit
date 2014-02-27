@@ -13,20 +13,23 @@ as
 
 		table_data					github.call_result;
 		row_result					github_repos_lang;
-		lang_idx					varchar2(4000);
+		keys						json_list;
 
 	begin
 
 		table_data := github_repos.repos_languages(git_account, repos_name);
+		keys := table_data.result.get_keys;
 
-		for i in 1..table_data.result.count loop
-			if table_data.result(i).type = 'ATTRNAME' then
+		if table_data.result.count > 0 then
+			for i in 1..table_data.result.count loop
 				row_result.repos_name := repos_name;
-				row_result.repos_lang := replace(table_data.result(i).item, '"');
-				row_result.lang_bytes := json.getAttrValue(table_data.result, row_result.repos_lang);
+				row_result.repos_lang := keys.get(i).get_string;
+				row_result.lang_bytes := table_data.result.get(row_result.repos_lang).get_number;
 				pipe row(row_result);
-			end if;
-		end loop;
+			end loop;
+		end if;
+
+		return;
 
 	end repository_languages;
 
@@ -43,31 +46,21 @@ as
 
 		table_data					github.call_result;
 		row_result					github_repository;
-		row_raw 					clob;
-		row_json					json.jsonstructobj;
-		inner_raw					clob;
-		inner_json					json.jsonstructobj;
+		row_data					json;
 
 	begin
 
 		if git_account is not null then
-			-- So apparently there is a bug in the json library, that I cannot understand. When there is an inline
-			-- json that ends with an boolean value, it refuses to recognize the ending brace. So for now, and untill
-			-- I fix that one, I do a butt ugly hack:
 	
 			table_data := github_repos.repositories(git_account, repos_type, repos_sort, repos_direction);
 
-			for rows in 1..table_data.result_count loop
-				row_raw := json.getAttrValue(table_data.result, 'AV_' || rows);
-				row_json := json.string2json(row_raw);
-				row_result.repos_id := json.getAttrValue(row_json, 'id');
-				row_result.repos_name := json.getAttrValue(row_json, 'name');
-				row_result.repos_full_name := json.getAttrValue(row_json, 'full_name');
-				-- Get inner owner
-				inner_raw := json.getAttrValue(row_json, 'owner');
-				inner_json := json.string2json(inner_raw);
-				row_result.repos_owner := json.getAttrValue(inner_json, 'login');
-				row_result.repos_description := json.getAttrValue(row_json, 'description');
+			for rows in 1..table_data.result_list.count loop
+				row_data := json(table_data.result_list.get(rows));
+				row_result.repos_id := json_ext.get_number(row_data, 'id');
+				row_result.repos_name := json_ext.get_string(row_data, 'name');
+				row_result.repos_full_name := json_ext.get_string(row_data, 'full_name');
+				row_result.repos_owner := json_ext.get_string(row_data, 'owner.login');
+				row_result.repos_description := json_ext.get_string(row_data, 'description');
 				row_result.repos_created := sysdate;
 				row_result.repos_updated := sysdate;
 
@@ -99,10 +92,7 @@ as
 
 		table_data					github.call_result;
 		row_result					github_issue;
-		row_raw 					clob;
-		row_json					json.jsonstructobj;
-		inner_raw					clob;
-		inner_json					json.jsonstructobj;
+		row_data					json;
 
 	begin
 
@@ -120,14 +110,21 @@ as
 			, since => since
 		);
 
-		for rows in 1..table_data.result_count loop
-			/* row_raw := json.getAttrValue(table_data.result, 'AV_' || rows);
-			row_json := json.string2json(row_raw);
+		for rows in 1..table_data.result_list.count loop
+			row_data := json(table_data.result_list.get(rows));
 
-			row_result.issue_id := json.getAttrValue(row_json, 'number');
-			row_result.api_url := json.getAttrValue(row_json, 'url');
-			row_result.html_url := json.getAttrValue(row_json, 'html_url'); */
-			row_result.issue_id := 0;
+			row_result.issue_id := json_ext.get_number(row_data, 'number');
+			row_result.api_url := json_ext.get_string(row_data, 'url');
+			row_result.html_url := json_ext.get_string(row_data, 'html_url');
+			row_result.state := json_ext.get_string(row_data, 'state');
+			row_result.title := json_ext.get_string(row_data, 'title');
+			row_result.body := json_ext.get_string(row_data, 'title');
+			row_result.created_by := json_ext.get_string(row_data, 'user.login');
+			row_result.assignee := json_ext.get_string(row_data, 'assignee.login');
+			row_result.comments := json_ext.get_number(row_data, 'comments');
+			row_result.created := sysdate;
+			row_result.updated := sysdate;
+			row_result.closed := sysdate;
 
 			pipe row (row_result);
 		end loop;

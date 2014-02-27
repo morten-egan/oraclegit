@@ -7,23 +7,19 @@ as
 		, repos_name				varchar2
 		, issue_number 				number
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/issues/' || issue_number || '/events';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/issues/' || issue_number || '/events', 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end list_issue_events;
 
@@ -31,23 +27,19 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/issues/events';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/issues/events', 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end list_repos_events;
 
@@ -56,23 +48,19 @@ as
 		, repos_name				varchar2
 		, event_id					number
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/issues/events/' || event_id;
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/issues/events/' || event_id, 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end get_event;
 

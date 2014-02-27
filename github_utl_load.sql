@@ -1,7 +1,9 @@
 set scan off;
 
+-- JSON library
+@@pljson/install.sql
+
 -- Specs
-@@json.spec.sql
 @@github.spec.sql
 @@github_repos.spec.sql
 @@github_repos_content.spec.sql
@@ -20,7 +22,6 @@ set scan off;
 @@github_oracle_session.spec.sql
 @@github_oracle_content.spec.sql
 -- Bodies
-@@json.body.sql
 @@github.body.sql
 @@github_issues.body.sql  
 @@github_repos_forks.body.sql   

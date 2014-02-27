@@ -38,7 +38,7 @@ as
 	as
 
 		github_path				varchar2(4000) := get_object_path(object_name, object_type, object_owner);
-		check_push_response		json.jsonstructobj;
+		check_push_response		github.call_result;
 		object_content_r		clob;
 		github_content_val		clob;
 		github_content_sha		varchar2(4000);
@@ -60,8 +60,8 @@ as
 		if github.github_call_status_code = 200 then
 			-- object path already exists
 			-- Update instead of create, but before we update check if it has changed
-			github_content_sha := json.getattrvalue(check_push_response, 'sha');
-			github_content_val := json.getattrvalue(check_push_response, 'content');
+			github_content_sha := check_push_response.result.get('sha').get_string;
+			github_content_val := check_push_response.result.get('content').get_string;
 			-- Cleanup content for comparison
 			github_content_val := replace(replace(github_content_val, chr(10)), chr(13));
 			if object_content_r != github_content_val then
@@ -127,7 +127,7 @@ as
 	as
 
 		github_path				varchar2(4000) := get_object_path(object_name, object_type, object_owner);
-		check_push_response		json.jsonstructobj;
+		check_push_response		github.call_result;
 		object_content			clob;
 		github_content_val		clob;
 	
@@ -142,7 +142,7 @@ as
 			);
 
 		if github.github_call_status_code = 200 then
-			github_content_val := json.getattrvalue(check_push_response, 'content');
+			github_content_val := check_push_response.result.get('content').get_string;
 			github_content_val := replace(replace(github_content_val, chr(10)), chr(13));
 			if object_content != github_content_val then
 				return 'Object ' || object_owner || '.' || object_name || ' is different from the repository version';

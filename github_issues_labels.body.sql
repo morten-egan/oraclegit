@@ -6,23 +6,19 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/labels';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/labels', 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end list_repos_labels;
 
@@ -31,23 +27,19 @@ as
 		, repos_name				varchar2
 		, label 					varchar2
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/labels/' || label;
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/labels/' || label, 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end get_label;
 
@@ -60,22 +52,16 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/labels';
-		github_api_endpoint_method	varchar2(100) := 'POST';
-		github_api_json				json.jsonstructobj;
 
 	begin
 
-		json.newjsonobj(github_api_json);
-		github_api_json := json.addattr(github_api_json, 'label', label);
-		github_api_json := json.addattr(github_api_json, 'color', color);
-		json.closejsonobj(github_api_json);
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/labels', 'POST');
+
+		github.github_call_request.call_json.put('label', label);
+		github.github_call_request.call_json.put('color', color);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
 	end create_label;
@@ -89,22 +75,15 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/labels/' || label;
-		github_api_endpoint_method	varchar2(100) := 'PATCH';
-		github_api_json				json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
-		github_api_json := json.addattr(github_api_json, 'label', label);
-		github_api_json := json.addattr(github_api_json, 'color', color);
-		json.closejsonobj(github_api_json);
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/labels/' || label, 'PATCH');
+
+		github.github_call_request.call_json.put('label', label);
+		github.github_call_request.call_json.put('color', color);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
 	end update_label;
@@ -117,16 +96,12 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/labels/' || label;
-		github_api_endpoint_method	varchar2(100) := 'DELETE';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/labels/' || label, 'DELETE');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
 	end delete_label;
@@ -136,23 +111,19 @@ as
 		, repos_name				varchar2
 		, issue_id 					number
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/issues/' || issue_id || '/labels';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/issues/' || issue_id || '/labels', 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end list_issue_labels;
 
@@ -160,22 +131,17 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 		, issue_id 					number
-		, labels 					json.jsonarray
+		, labels 					json_list
 	)
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/issues/' || issue_id || '/labels';
-		github_api_endpoint_method	varchar2(100) := 'POST';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/issues/' || issue_id || '/labels', 'POST');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.listToJsonArrayString(labels)
 		);
 
 	end add_labels_to_issue;
@@ -189,16 +155,12 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/issues/' || issue_id || '/labels/' || label;
-		github_api_endpoint_method	varchar2(100) := 'DELETE';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/issues/' || issue_id || '/labels/' || label, 'DELETE');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
 	end remove_label_from_issue;
@@ -207,22 +169,17 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 		, issue_id 					number
-		, labels 					json.jsonarray
+		, labels 					json_list
 	)
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/issues/' || issue_id || '/labels';
-		github_api_endpoint_method	varchar2(100) := 'PUT';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/issues/' || issue_id || '/labels', 'PUT');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.listToJsonArrayString(labels)
 		);
 
 	end replace_all_labels_issue;
@@ -235,16 +192,12 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/issues/' || issue_id || '/labels';
-		github_api_endpoint_method	varchar2(100) := 'DELETE';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/issues/' || issue_id || '/labels', 'DELETE');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
 	end remove_labels_issue;
@@ -254,23 +207,19 @@ as
 		, repos_name				varchar2
 		, milestone_id				number
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/milestones/' || milestone_id || '/labels';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/milestones/' || milestone_id || '/labels', 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end labels_from_milestone;
 

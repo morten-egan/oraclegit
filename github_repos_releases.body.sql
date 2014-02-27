@@ -6,23 +6,19 @@ as
 		git_account					varchar2
 		, repos_name				varchar2
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/releases';
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/releases', 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end list_releases;
 
@@ -31,23 +27,19 @@ as
 		, repos_name				varchar2
 		, release_id				number
 	)
-	return json.jsonstructobj
+	return github.call_result
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/releases/' || release_id;
-		github_api_endpoint_method	varchar2(100) := 'GET';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/releases/' || release_id, 'GET');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
-		return github.github_api_parsed_result;
+		return github.github_response_result;
 
 	end get_release;
 
@@ -64,30 +56,23 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/releases';
-		github_api_endpoint_method	varchar2(100) := 'POST';
-		github_api_json				json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
-		github_api_json := json.addattr(github_api_json, 'tag_name', tag_name);
-		github_api_json := json.addattr(github_api_json, 'target_commitish', target_commitish);
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/releases', 'POST');
+
+		github.github_call_request.call_json.put('tag_name', tag_name);
+		github.github_call_request.call_json.put('target_commitish', target_commitish);
 		if name is not null then
-			github_api_json := json.addattr(github_api_json, 'name', name);
+			github.github_call_request.call_json.put('name', name);
 		end if;
 		if body is not null then
-			github_api_json := json.addattr(github_api_json, 'body', body);
+			github.github_call_request.call_json.put('body', body);
 		end if;
-		github_api_json := json.addattr(github_api_json, 'draft', draft);
-		github_api_json := json.addattr(github_api_json, 'prerelease', prerelease);
-		json.closejsonobj(github_api_json);
+		github.github_call_request.call_json.put('draft', draft);
+		github.github_call_request.call_json.put('prerelease', prerelease);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
 	end create_release;
@@ -106,34 +91,27 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/releases/' || release_id;
-		github_api_endpoint_method	varchar2(100) := 'PATCH';
-		github_api_json				json.jsonstructobj;
-
 	begin
 
-		json.newjsonobj(github_api_json);
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/releases/' || release_id, 'PATCH');
+
 		if tag_name is not null then
-			github_api_json := json.addattr(github_api_json, 'tag_name', tag_name);
+			github.github_call_request.call_json.put('tag_name', tag_name);
 		end if;
 		if target_commitish is not null then
-			github_api_json := json.addattr(github_api_json, 'target_commitish', target_commitish);
+			github.github_call_request.call_json.put('target_commitish', target_commitish);
 		end if;
 		if name is not null then
-			github_api_json := json.addattr(github_api_json, 'name', name);
+			github.github_call_request.call_json.put('name', name);
 		end if;
 		if body is not null then
-			github_api_json := json.addattr(github_api_json, 'body', body);
+			github.github_call_request.call_json.put('body', body);
 		end if;
-		github_api_json := json.addattr(github_api_json, 'draft', draft);
-		github_api_json := json.addattr(github_api_json, 'prerelease', prerelease);
-		json.closejsonobj(github_api_json);
+		github.github_call_request.call_json.put('draft', draft);
+		github.github_call_request.call_json.put('prerelease', prerelease);
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
-			, api_data => json.json2string(github_api_json)
 		);
 
 	end edit_release;
@@ -146,16 +124,12 @@ as
 
 	as
 
-		github_api_endpoint			varchar2(4000) := '/repos/' || git_account || '/' || repos_name || '/releases/' || release_id;
-		github_api_endpoint_method	varchar2(100) := 'DELETE';
-		github_api_json				json.jsonstructobj;
-
 	begin
+
+		github.init_talk('/repos/' || git_account || '/' || repos_name || '/releases/' || release_id, 'DELETE');
 
 		github.talk(
 			github_account => git_account
-			, api_endpoint => github_api_endpoint
-			, endpoint_method => github_api_endpoint_method
 		);
 
 	end delete_release;

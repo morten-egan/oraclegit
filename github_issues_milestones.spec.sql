@@ -24,7 +24,7 @@ as
 		, sort 						varchar2 default 'due_date'
 		, direction 				varchar2 default 'asc'
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Get a single milestone
 	* @author Morten Egan
@@ -38,7 +38,7 @@ as
 		, repos_name				varchar2
 		, milestone_id				number
 	)
-	return json.jsonstructobj;
+	return github.call_result;
 
 	/** Create a milestone
 	* @author Morten Egan
