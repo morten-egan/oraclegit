@@ -388,37 +388,4 @@ Log in as sys in sqlplus an run the install.sql script supplied in the root of t
 
 ##Examples
 
-For the examples below, we expect wallet location to be */home/oracle/wallet* and wallet password to be *WalletPasswd123*. Also we are using a github test user with the username of *github-user* with the password *gitPass123*.
-
-###Create a repository:
-	declare
-	  myjson json.jsonstructobj;
-	begin
-		github.set_session_wallet('file:/home/oracle/wallet', 'WalletPasswd123');
-		github.set_logon_info('github-user', 'gitPass123');
-		github_repos.repos_create (
-			git_account => 'github-user'
-			, repos_name => 'trepos'
-			, use_org => false
-			, org_name => null
-			, private => false
-			, auto_init => true
-		);
-	end;
-	/
-
-###Push a file to the newly created repository:
-	declare
-	  myjson json.jsonstructobj;
-	begin
-	  github.set_session_wallet('file:/home/oracle/wallet', 'Manager123');
-	  github.set_logon_info('github-user', 'gitPass123');
-	  github_repos_content.create_file (
-	    git_account => 'github-user'
-	    , repos_name => 'trepos'
-	    , path => 'myNewFile.txt'
-	    , message => 'Just a commit message'
-	    , content => github.encode64_clob('Hello GitHub')
-	  );
-	end;
-	/
+For a list of examples and blog posts about how to use this package please go to my website [GITHUB_UTL at CodeMonth.dk](http://www.codemonth.dk/#/codemonth/2)
