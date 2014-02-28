@@ -131,5 +131,107 @@ as
 
 	end repository_issues;
 
+	function repository_contributors (
+		git_account					varchar2
+		, repos_name				varchar2
+		, anon 						varchar2 default '1'
+	)
+	return repos_contributor_tab
+	pipelined
+
+	as
+
+		table_data					github.call_result;
+		row_result					repos_contributor;
+		row_data					json;
+
+	begin
+
+		table_data := github_repos.repos_contributors(
+			git_account => git_account
+			, repos_name => repos_name
+			, anon => anon
+		);
+
+		for rows in 1..table_data.result_list.count loop
+			row_data := json(table_data.result_list.get(rows));
+
+			row_result.user_name := json_ext.get_string(row_data, 'login');
+			row_result.url := json_ext.get_string(row_data, 'url');
+			row_result.contributions := json_ext.get_number(row_data, 'contributions');
+
+			pipe row (row_result);
+		end loop;
+
+	end repository_contributors;
+
+	function repository_branches (
+		git_account					varchar2
+		, repos_name				varchar2
+	)
+	return repos_branch_tab
+	pipelined
+
+	as
+
+		table_data					github.call_result;
+		row_result					repos_branch;
+		row_data					json;
+
+	begin
+
+		table_data := github_repos.repos_branches(
+			git_account => git_account
+			, repos_name => repos_name
+		);
+
+		for rows in 1..table_data.result_list.count loop
+			row_data := json(table_data.result_list.get(rows));
+
+			row_result.branch_name := json_ext.get_string(row_data, 'name');
+			row_result.commit_sha := json_ext.get_string(row_data, 'commit.sha');
+			row_result.commit_url := json_ext.get_string(row_data, 'commit.url');
+
+			pipe row (row_result);
+		end loop;
+
+	end repository_branches;
+
+	function repository_contents (
+		git_account					varchar2
+		, repos_name				varchar2
+		, path 						varchar2 default '/'
+	)
+	return repos_content_obj_tab
+	pipelined
+
+	as
+
+		table_data					github.call_result;
+		row_result					repos_content_obj;
+		row_data					json;
+
+	begin
+
+		table_data := github_repos_content.get_content(
+			git_account => git_account
+			, repos_name => repos_name
+			, path => path
+		);
+
+		for rows in 1..table_data.result_list.count loop
+			row_data := json(table_data.result_list.get(rows));
+
+			row_result.content_type := json_ext.get_string(row_data, 'type');
+			row_result.content_name := json_ext.get_string(row_data, 'name');
+			row_result.content_path := json_ext.get_string(row_data, 'path');
+			row_result.github_sha := json_ext.get_string(row_data, 'sha');
+			row_result.url := json_ext.get_string(row_data, 'url');
+
+			pipe row (row_result);
+		end loop;
+
+	end repository_contents;
+
 end github_tables;
 /

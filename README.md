@@ -17,69 +17,374 @@ To use this package, you will need to install the GitHub ssl certificates into a
 	orapki wallet add -wallet /home/oracle/wallet -trusted_cert -cert "/home/oracle/cert2.crt" -pwd WalletPasswd123
 	orapki wallet add -wallet /home/oracle/wallet -trusted_cert -cert "/home/oracle/cert3.crt" -pwd WalletPasswd123
 
-###Create a user
-Create a user to install the packages into. You can user this template:
+###Run the installation script
 
-	create user oraclegit identified by oraclegit
-	default tablespace users
-	quota unlimited on users;
+Log in as sys in sqlplus an run the install.sql script supplied in the root of the release file:
 
-	grant create session to oraclegit;
-	grant create table to oraclegit;
-	grant create procedure to oraclegit;
-	grant select any dictionary to oraclegit;
-	grant execute on utl_http to oraclegit;
-	grant execute on dbms_metadata to oraclegit;
+	[oracle@localhost oraclegit]$ sqlplus sys/oracle as sysdba
 
-###Add Access Control List
-If you are installing this into oracle 11g or higher we need to create an ACL for utl_http and the user we created in the previous step [This should be run as sys]:
+	SQL*Plus: Release 11.2.0.2.0 Production on Thu Feb 27 12:52:01 2014
 
-	BEGIN
-	  DBMS_NETWORK_ACL_ADMIN.create_acl (
-	    acl          => 'github_acl.xml', 
-	    description  => 'ACL definition for Github.com access',
-	    principal    => 'ORACLEGIT',
-	    is_grant     => TRUE, 
-	    privilege    => 'connect',
-	    start_date   => SYSTIMESTAMP,
-	    end_date     => NULL);
+	Copyright (c) 1982, 2010, Oracle.  All rights reserved.
 
-	  COMMIT;
 
-	dbms_network_acl_admin.add_privilege (
-				acl	 => 'github_acl.xml',
-				principal	 => 'ORACLEGIT',
-				is_grant	 => true,
-				privilege	 => 'resolve'
-			);
-			commit;
+	Connected to:
+	Oracle Database 11g Enterprise Edition Release 11.2.0.2.0 - Production
+	With the Partitioning, OLAP, Data Mining and Real Application Testing options
 
-			dbms_network_acl_admin.assign_acl (
-				acl          => 'github_acl.xml',
-				host         => 'api.github.com',
-				lower_port	 => 443,
-				upper_port	 => null
-			);
-			commit;
+	SQL> @install
 
-	  COMMIT;
-	END;
-	/
+	User created.
 
-###Install packages
 
-To install the packages run the following commands as the user we created:
+	Grant succeeded.
 
-	@json.spec.sql
-	@github.spec.sql
-	@github_repos.spec.sql
-	@github_repos_content.spec.sql
-	@github_issues.spec.sql
-	@json.body.sql
-	@github.body.sql
-	@github_repos.body.sql
-	@github_repos_content.body.sql
-	@github_issues.body.sql
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	Grant succeeded.
+
+
+	PL/SQL procedure successfully completed.
+
+	Connected.
+	-- Setting optimize level -
+
+	Session altered.
+
+	-----------------------------------
+	-- Compiling objects for PL/JSON --
+	-----------------------------------
+
+	PL/SQL procedure successfully completed.
+
+
+	Type created.
+
+
+	Type created.
+
+	No errors.
+
+	Type created.
+
+	No errors.
+
+	Type created.
+
+	No errors.
+
+	Package created.
+
+
+	Package body created.
+
+
+	Package created.
+
+
+	Package body created.
+
+
+	Type body created.
+
+	No errors.
+
+	Package created.
+
+
+	Package body created.
+
+
+	Type body created.
+
+	No errors.
+
+	Type body created.
+
+	No errors.
+
+	Package created.
+
+
+	Package body created.
+
+	------------------------------------------
+	-- Adding optional packages for PL/JSON --
+	------------------------------------------
+
+	Package created.
+
+
+	Package body created.
+
+
+	Package created.
+
+
+	Package body created.
+
+
+	Package created.
+
+
+	Package body created.
+
+
+	Package created.
+
+
+	Package body created.
+
+
+	Package created.
+
+
+	Package body created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Package body created.
+
+
+	Sequence created.
+
+
+	Table created.
+
+
+	1 row created.
+
+
+	1 row created.
+
+
+	1 row created.
+
+
+	1 row created.
+
+
+	1 row created.
+
+
+	1 row created.
+
+
+	1 row created.
+
+
+	1 row created.
+
+
+	Table created.
+
+
+	Table created.
+
+
+	Table created.
+
+
+	Table created.
+
+
+	Table created.
+
+
+	Table created.
+
+
+	Package created.
+
+
+	Package body created.
+
+
+	Grant succeeded.
+
+
+	Synonym created.
+
+
+	Type created.
+
+
+	PL/SQL procedure successfully completed.
+
+
+	Procedure created.
+
+
+	PL/SQL procedure successfully completed.
+
+
+	PL/SQL procedure successfully completed.
+
+
+	Procedure created.
+
+
+	Grant succeeded.
+
+
+	Synonym created.
+
+
+	Trigger created.
+
+
+	Trigger created.
+
+	SQL> 
+
 
 ##Examples
 

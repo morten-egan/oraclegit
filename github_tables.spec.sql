@@ -105,5 +105,71 @@ as
 	return repos_issues_tab
 	pipelined;
 
+	type repos_contributor is record (
+		user_name					varchar2(4000)
+		, url 						varchar2(4000)
+		, contributions				number
+	);
+
+	type repos_contributor_tab is table of repos_contributor;
+
+	/** Return a list of contributors for a repository
+	* @author Morten Egan
+	* @param git_Account The owner of the repository
+	* @param repos_name The name of the repository
+	* @param anon Whether or not to include anonymous users
+	*/
+	function repository_contributors (
+		git_account					varchar2
+		, repos_name				varchar2
+		, anon 						varchar2 default '1'
+	)
+	return repos_contributor_tab
+	pipelined;
+
+	type repos_branch is record (
+		branch_name					varchar2(4000)
+		, commit_sha				varchar2(4000)
+		, commit_url				varchar2(4000)
+	);
+
+	type repos_branch_tab is table of repos_branch;
+
+	/** Return repository branches
+	* @author Morten Egan
+	* @param git_account The owner of the repository
+	* @param repos_name The name of the repository
+	*/
+	function repository_branches (
+		git_account					varchar2
+		, repos_name				varchar2
+	)
+	return repos_branch_tab
+	pipelined;
+
+	type repos_content_obj is record (
+		content_type				varchar2(20)
+		, content_name				varchar2(4000)
+		, content_path				varchar2(4000)
+		, github_sha				varchar2(4000)
+		, url 						varchar2(4000)
+	);
+
+	type repos_content_obj_tab is table of repos_content_obj;
+
+	/** Return a list of repository contents from path
+	* @author Morten Egan
+	* @param git_account The owner of the repository
+	* @param repos_name The name of the repository
+	* @param path The path to get contents from
+	*/
+	function repository_contents (
+		git_account					varchar2
+		, repos_name				varchar2
+		, path 						varchar2 default '/'
+	)
+	return repos_content_obj_tab
+	pipelined;
+
 end github_tables;
 /
