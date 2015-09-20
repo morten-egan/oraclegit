@@ -542,6 +542,10 @@ as
 			return false;
 		end if;
 
+		exception
+			when others then
+				return false;
+
 	end is_issue_enabled;
 
 	procedure github_issue (
