@@ -388,4 +388,4 @@ Log in as sys in sqlplus an run the install.sql script supplied in the root of t
 
 ##Examples
 
-For a list of examples and blog posts about how to use this package please go to my website [GITHUB_UTL at CodeMonth.dk](http://www.codemonth.dk/#/codemonth/2)
+For a list of examples and blog posts about how to use this package please go to my website [GITHUB_UTL at CodeMonth.dk](http://www.codemonth.dk/code_is_good/dev_qa_prod.assert?condition=codemonth:::2:)
